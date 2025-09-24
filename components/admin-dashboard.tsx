@@ -2,17 +2,13 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import ThemeToggle from "@/components/theme-toggle"
-import { Trophy, Users, Calendar, Timer, Medal, Activity, LogOut, UserIcon, Home, Bell, Settings, Search, Globe } from "lucide-react"
 import { DashboardOverview } from "@/components/dashboard-overview"
 import { EventManagement } from "@/components/event-management"
 import { ResultsEntry } from "@/components/results-entry"
 import { LiveScoreboard } from "@/components/live-scoreboard"
 import { SwimmerManagement } from "@/components/swimmer-management"
+import  AnalyticsReports  from "@/components/analytics-reports"
 import HouseManagement from "@/components/house-management"
 
 interface AdminUser {
@@ -27,6 +23,18 @@ export function AdminDashboard() {
   const [user, setUser] = useState<AdminUser | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
+
+  // Keep Bootstrap's data-bs-theme in sync with our theme provider (dark/light)
+  useEffect(() => {
+    const setBsTheme = () => {
+      const isDark = document.documentElement.classList.contains('dark')
+      document.documentElement.setAttribute('data-bs-theme', isDark ? 'dark' : 'light')
+    }
+    setBsTheme()
+    const obs = new MutationObserver(setBsTheme)
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => obs.disconnect()
+  }, [])
 
   useEffect(() => {
     // Get current user info
@@ -55,10 +63,13 @@ export function AdminDashboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-vh-100 d-flex align-items-center justify-content-center bg-body">
         <div className="text-center">
-          <Trophy className="h-12 w-12 text-primary mx-auto mb-4" />
-          <p>Loading admin dashboard...</p>
+          <div className="spinner-border text-primary mb-3" role="status" aria-hidden="true"></div>
+          <div className="d-flex align-items-center justify-content-center gap-2">
+            <i className="bi bi-trophy-fill text-primary"></i>
+            <p className="m-0">Loading admin dashboard...</p>
+          </div>
         </div>
       </div>
     )
@@ -69,135 +80,175 @@ export function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-vh-100 bg-body">
       {/* Header */}
-      <header className="border-b border-border bg-card/80 backdrop-blur supports-[backdrop-filter]:bg-card/60 sticky top-0 z-40">
-        <div className="flex h-16 items-center justify-between px-4 md:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <Trophy className="h-7 w-7 text-primary" />
-              <div>
-                <h1 className="text-lg md:text-xl font-bold text-foreground">Swimming Competition</h1>
-                <p className="hidden md:block text-xs text-muted-foreground">Interhouse Championship 2024</p>
-              </div>
+      <header className="sticky top-0 z-40 border-bottom bg-body-tertiary">
+        <div className="container-fluid d-flex align-items-center justify-content-between py-2 px-3">
+          <div className="d-flex align-items-center gap-2">
+            <i className="bi bi-trophy-fill fs-4 text-primary" aria-hidden="true"></i>
+            <div>
+              <h1 className="m-0 fw-bold fs-5">Swimming Competition</h1>
+              <small className="text-secondary d-none d-md-block">Interhouse Championship 2025</small>
             </div>
+          </div>
+          {/* Mobile sidebar toggle */}
+          <div className="d-flex d-md-none align-items-center ms-auto me-2">
+            <button
+              className="btn btn-outline-secondary btn-sm"
+              type="button"
+              data-bs-toggle="offcanvas"
+              data-bs-target="#sidebarMenu"
+              aria-controls="sidebarMenu"
+              aria-label="Toggle navigation"
+            >
+              <i className="bi bi-list"></i>
+            </button>
           </div>
           {/* Search */}
-          <div className="hidden md:flex flex-1 max-w-xl mx-4">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Search…" className="pl-9" />
+          <div className="d-none d-md-flex flex-grow-1 mx-3" style={{ maxWidth: 600 }}>
+            <div className="position-relative w-100">
+              <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+              <input placeholder="Search…" className="form-control ps-5 bg-transparent" />
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Badge variant="secondary" className="bg-accent text-accent-foreground hidden md:inline-flex">
-              <Activity className="mr-1 h-3 w-3" />
+          <div className="d-flex align-items-center gap-2">
+            <span className="badge bg-primary d-none d-md-inline-flex align-items-center gap-1">
+              <i className="bi bi-activity"></i>
               Live
-            </Badge>
-            <Button variant="ghost" size="icon" aria-label="Change language">
-              <Globe className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" aria-label="Notifications">
-              <Bell className="h-4 w-4" />
-            </Button>
-            <Button variant="ghost" size="icon" aria-label="Settings">
-              <Settings className="h-4 w-4" />
-            </Button>
+            </span>
+            <button aria-label="Change language" className="btn btn-outline-secondary btn-sm">
+              <i className="bi bi-globe2"></i>
+            </button>
+            <button aria-label="Notifications" className="btn btn-outline-secondary btn-sm">
+              <i className="bi bi-bell"></i>
+            </button>
+            <button aria-label="Settings" className="btn btn-outline-secondary btn-sm">
+              <i className="bi bi-gear"></i>
+            </button>
             <ThemeToggle />
-            <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-muted rounded-md">
-              <UserIcon className="h-4 w-4" />
-              <span className="text-sm font-medium">{user.name}</span>
-              <Badge variant="outline" className="text-xs">
-                {user.role}
-              </Badge>
+            <div className="d-none d-md-flex align-items-center gap-2 px-2 py-1 rounded bg-body-secondary">
+              <i className="bi bi-person-circle"></i>
+              <span className="small fw-medium">{user.name}</span>
+              <span className="badge text-bg-secondary text-uppercase">{user.role}</span>
             </div>
-            <Button variant="outline" size="sm" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
+            <button onClick={handleLogout} className="btn btn-outline-light btn-sm">
+              <i className="bi bi-box-arrow-right me-2"></i>
               Logout
-            </Button>
+            </button>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 border-r border-sidebar-border bg-sidebar/90 backdrop-blur hidden md:block">
-          {/* Brand block */}
-          <div className="h-16 px-3 border-b border-sidebar-border flex items-center gap-3">
-            <Image src="/placeholder-logo.svg" alt="SICS Logo" width={28} height={28} className="rounded-sm" />
-            <div className="leading-tight">
-              <div className="text-sm font-bold text-foreground">SICS Admin</div>
-              <div className="text-[11px] text-muted-foreground">Control Center</div>
+      <div className="d-flex">
+        {/* Sidebar - Bootstrap dashboard style */}
+        <aside className="border-end" style={{ width: 260 }}>
+          {/* Brand block (dark strip) visible on md+ */}
+          <div className="px-3 py-2 bg-dark text-white fw-medium d-none d-md-block">Company name</div>
+          <div className="offcanvas-md offcanvas-end bg-body-tertiary" tabIndex={-1} id="sidebarMenu" aria-labelledby="sidebarMenuLabel">
+            <div className="offcanvas-header d-md-none">
+              <h5 className="offcanvas-title" id="sidebarMenuLabel">Company name</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="offcanvas" data-bs-target="#sidebarMenu" aria-label="Close"></button>
+            </div>
+            <div className="offcanvas-body d-md-flex flex-column p-0 pt-lg-3 overflow-y-auto">
+            <div>
+              <ul className="nav flex-column p-2">
+                <li className="nav-item">
+                  <a
+                    href="#"
+                    className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'overview' ? 'active' : 'text-primary'}`}
+                    aria-current={activeTab === 'overview' ? 'page' : undefined}
+                    onClick={(e) => { e.preventDefault(); setActiveTab('overview') }}
+                  >
+                    <i className="bi bi-house-fill"></i>
+                    Dashboard
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a
+                    href="#"
+                    className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'houses' ? 'active' : 'text-primary'}`}
+                    onClick={(e) => { e.preventDefault(); if (user.role !== 'viewer') setActiveTab('houses') }}
+                  >
+                    <i className="bi bi-house"></i>
+                    Houses
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a
+                    href="#"
+                    className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'events' ? 'active' : 'text-primary'}`}
+                    onClick={(e) => { e.preventDefault(); if (user.role !== 'viewer') setActiveTab('events') }}
+                  >
+                    <i className="bi bi-calendar3"></i>
+                    Events
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a
+                    href="#"
+                    className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'results' ? 'active' : 'text-primary'}`}
+                    onClick={(e) => { e.preventDefault(); if (user.role !== 'viewer') setActiveTab('results') }}
+                  >
+                    <i className="bi bi-stopwatch"></i>
+                    Results Entry
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a
+                    href="#"
+                    className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'scoreboard' ? 'active' : 'text-primary'}`}
+                    onClick={(e) => { e.preventDefault(); setActiveTab('scoreboard') }}
+                  >
+                    <i className="bi bi-trophy"></i>
+                    Live Scoreboard
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a
+                    href="#"
+                    className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'swimmers' ? 'active' : 'text-primary'}`}
+                    onClick={(e) => { e.preventDefault(); if (user.role !== 'viewer') setActiveTab('swimmers') }}
+                  >
+                    <i className="bi bi-people"></i>
+                    Swimmers
+                  </a>
+                </li>
+                <li className="nav-item">
+                  <a
+                    href="#"
+                    className={`nav-link d-flex align-items-center gap-2 ${activeTab === 'analytics' ? 'active' : 'text-primary'}`}
+                    onClick={(e) => { e.preventDefault(); if (user.role !== 'viewer') setActiveTab('analytics') }}
+                  >
+                    <i className="bi bi-graph-up"></i>
+                    Reports
+                  </a>
+                </li>
+              </ul>
+
+              <div className="px-3 mt-3 mb-1 text-body-secondary text-uppercase small d-flex align-items-center justify-content-between">
+              
+              </div>
+              
+            </div>
+
+            <div className="mt-auto">
+              <hr className="my-2" />
+              
+            </div>
             </div>
           </div>
-          <nav className="p-3">
-            <div className="text-xs uppercase tracking-wider text-muted-foreground px-2 pb-2">Manage</div>
-            <div className="space-y-1">
-              <Button
-                variant={activeTab === "overview" ? "default" : "ghost"}
-                className="w-full justify-start gap-2 rounded-md transition-colors hover:bg-muted/60"
-                onClick={() => setActiveTab("overview")}
-              >
-                <Trophy className="h-4 w-4" />
-                Dashboard
-              </Button>
-              <Button
-                variant={activeTab === "houses" ? "default" : "ghost"}
-                className="w-full justify-start gap-2 rounded-md transition-colors hover:bg-muted/60"
-                onClick={() => setActiveTab("houses")}
-                disabled={user.role === "viewer"}
-              >
-                <Home className="h-4 w-4" />
-                Houses
-              </Button>
-              <Button
-                variant={activeTab === "events" ? "default" : "ghost"}
-                className="w-full justify-start gap-2 rounded-md transition-colors hover:bg-muted/60"
-                onClick={() => setActiveTab("events")}
-                disabled={user.role === "viewer"}
-              >
-                <Calendar className="h-4 w-4" />
-                Events
-              </Button>
-              <Button
-                variant={activeTab === "results" ? "default" : "ghost"}
-                className="w-full justify-start gap-2 rounded-md transition-colors hover:bg-muted/60"
-                onClick={() => setActiveTab("results")}
-                disabled={user.role === "viewer"}
-              >
-                <Timer className="h-4 w-4" />
-                Results Entry
-              </Button>
-              <Button
-                variant={activeTab === "scoreboard" ? "default" : "ghost"}
-                className="w-full justify-start gap-2 rounded-md transition-colors hover:bg-muted/60"
-                onClick={() => setActiveTab("scoreboard")}
-              >
-                <Medal className="h-4 w-4" />
-                Live Scoreboard
-              </Button>
-              <Button
-                variant={activeTab === "swimmers" ? "default" : "ghost"}
-                className="w-full justify-start gap-2 rounded-md transition-colors hover:bg-muted/60"
-                onClick={() => setActiveTab("swimmers")}
-                disabled={user.role === "viewer"}
-              >
-                <Users className="h-4 w-4" />
-                Swimmers
-              </Button>
-            </div>
-          </nav>
         </aside>
 
         {/* Content Area */}
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 p-md-5 container-fluid">
           {activeTab === "overview" && <DashboardOverview />}
           {activeTab === "houses" && user.role !== "viewer" && <HouseManagement />}
           {activeTab === "events" && user.role !== "viewer" && <EventManagement />}
           {activeTab === "results" && user.role !== "viewer" && <ResultsEntry />}
           {activeTab === "scoreboard" && <LiveScoreboard />}
           {activeTab === "swimmers" && user.role !== "viewer" && <SwimmerManagement />}
+          {activeTab ===  "analytics" && user.role !== "viewer" && < AnalyticsReports/>}
         </main>
       </div>
     </div>

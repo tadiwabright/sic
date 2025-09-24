@@ -24,13 +24,12 @@ export async function GET() {
             r.position,
             r.time_seconds,
             r.points,
-            r.status,
-            r.created_at
+            r.status
           FROM results r
           JOIN swimmers s ON r.swimmer_id = s.id
           JOIN houses h ON s.house_id = h.id
           JOIN events e ON r.event_id = e.id
-          ORDER BY e.event_order ASC, r.position ASC, r.created_at DESC
+          ORDER BY e.event_order ASC, r.position ASC, r.id DESC
         `
         return NextResponse.json(results)
       } catch (err) {

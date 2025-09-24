@@ -3,13 +3,6 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Edit, Trash2, Users, Save, X } from "lucide-react"
 
 // Local types to avoid importing server-only code
 interface House {
@@ -124,156 +117,114 @@ export function SwimmerManagement() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Swimmer Management</h2>
-        <Card>
-          <CardContent className="p-6">
-            <div>Loading swimmers...</div>
-          </CardContent>
-        </Card>
+      <div className="d-grid gap-3">
+        <h2 className="h4 m-0">Swimmer Management</h2>
+        <div className="card"><div className="card-body">Loading swimmers...</div></div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Swimmer Management</h2>
-        <Button onClick={() => setShowAddForm(true)} disabled={showAddForm}>
-          <Plus className="mr-2 h-4 w-4" />
+    <div className="d-grid gap-3">
+      <div className="d-flex align-items-center justify-content-between">
+        <h2 className="h4 m-0">Swimmer Management</h2>
+        <button className="btn btn-primary" onClick={() => setShowAddForm(true)} disabled={showAddForm}>
+          <i className="bi bi-person-plus me-2"></i>
           Add Swimmer
-        </Button>
+        </button>
       </div>
 
       {/* Add/Edit Form */}
       {showAddForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingId ? "Edit Swimmer" : "Add New Swimmer"}</CardTitle>
-            <CardDescription>{editingId ? "Update swimmer information" : "Enter swimmer details"}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    required
-                  />
+        <div className="card">
+          <div className="card-header">
+            <div className="fw-semibold">{editingId ? "Edit Swimmer" : "Add New Swimmer"}</div>
+            <div className="text-body-secondary small">{editingId ? "Update swimmer information" : "Enter swimmer details"}</div>
+          </div>
+          <div className="card-body">
+            <form onSubmit={handleSubmit} className="d-grid gap-3">
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <label htmlFor="name" className="form-label">Name</label>
+                  <input id="name" className="form-control" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required />
                 </div>
-                <div>
-                  <Label htmlFor="house">House</Label>
-                  <Select
-                    value={formData.house_id}
-                    onValueChange={(value) => setFormData({ ...formData, house_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select house..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {houses.map((house) => (
-                        <SelectItem key={house.id} value={house.id.toString()}>
-                          {house.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="col-md-6">
+                  <label className="form-label">House</label>
+                  <select className="form-select" value={formData.house_id} onChange={(e) => setFormData({ ...formData, house_id: e.target.value })}>
+                    <option value="">Select house...</option>
+                    {houses.map((house) => (
+                      <option key={house.id} value={house.id.toString()}>{house.name}</option>
+                    ))}
+                  </select>
                 </div>
-                <div>
-                  <Label htmlFor="age_group">Age Group</Label>
-                  <Select
-                    value={formData.age_group}
-                    onValueChange={(value) => setFormData({ ...formData, age_group: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select age group..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Under 12">Under 12</SelectItem>
-                      <SelectItem value="Under 14">Under 14</SelectItem>
-                      <SelectItem value="Under 16">Under 16</SelectItem>
-                      <SelectItem value="Under 18">Under 18</SelectItem>
-                      <SelectItem value="Open">Open</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="col-md-6">
+                  <label className="form-label">Age Group</label>
+                  <select className="form-select" value={formData.age_group} onChange={(e) => setFormData({ ...formData, age_group: e.target.value })}>
+                    <option value="">Select age group...</option>
+                    <option value="Under 12">Under 12</option>
+                    <option value="Under 14">Under 14</option>
+                    <option value="Under 16">Under 16</option>
+                    <option value="Under 18">Under 18</option>
+                    <option value="Open">Open</option>
+                  </select>
                 </div>
-                <div>
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value) => setFormData({ ...formData, gender: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="col-md-6">
+                  <label className="form-label">Gender</label>
+                  <select className="form-select" value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value })}>
+                    <option value="">Select gender...</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                  </select>
                 </div>
               </div>
-              <div className="flex gap-2">
-                <Button type="submit">
-                  <Save className="mr-2 h-4 w-4" />
+              <div className="d-flex gap-2">
+                <button type="submit" className="btn btn-primary">
+                  <i className="bi bi-save me-2"></i>
                   {editingId ? "Update" : "Add"} Swimmer
-                </Button>
-                <Button type="button" variant="outline" onClick={cancelEdit}>
-                  <X className="mr-2 h-4 w-4" />
+                </button>
+                <button type="button" className="btn btn-outline-secondary" onClick={cancelEdit}>
+                  <i className="bi bi-x-lg me-2"></i>
                   Cancel
-                </Button>
+                </button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Swimmers List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Registered Swimmers ({swimmers.length})
-          </CardTitle>
-          <CardDescription>Manage swimmer registrations and information</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {swimmers.map((swimmer) => (
-              <div key={swimmer.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex items-center gap-4">
-                  <div className="w-4 h-4 rounded-full" style={{ backgroundColor: swimmer.house_color }} />
-                  <div>
-                    <div className="font-semibold text-lg">{swimmer.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {swimmer.house_name} • {swimmer.age_group} • {swimmer.gender}
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline">{swimmer.house_name}</Badge>
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(swimmer)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(swimmer.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+      <div className="card">
+        <div className="card-header d-flex align-items-center gap-2">
+          <i className="bi bi-people"></i>
+          <span className="fw-semibold">Registered Swimmers ({swimmers.length})</span>
+          <span className="ms-auto small text-body-secondary">Manage swimmer registrations and information</span>
+        </div>
+        <div className="card-body d-grid gap-2">
+          {swimmers.map((swimmer) => (
+            <div key={swimmer.id} className="d-flex align-items-center justify-content-between p-3 border rounded-2">
+              <div className="d-flex align-items-center gap-3">
+                <div className="rounded-circle" style={{ width: 12, height: 12, backgroundColor: swimmer.house_color }} />
+                <div>
+                  <div className="fw-semibold">{swimmer.name}</div>
+                  <div className="small text-primary">{swimmer.house_name} • {swimmer.age_group} • {swimmer.gender}</div>
                 </div>
               </div>
-            ))}
-            {swimmers.length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No swimmers registered yet.</p>
-                <p className="text-sm">Add swimmers to get started with the competition.</p>
+              <div className="d-flex align-items-center gap-2">
+                <span className="badge text-bg-light">{swimmer.house_name}</span>
+                <button className="btn btn-outline-secondary btn-sm" onClick={() => handleEdit(swimmer)} title="Edit"><i className="bi bi-pencil"></i></button>
+                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(swimmer.id)} title="Delete"><i className="bi bi-trash"></i></button>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+            </div>
+          ))}
+          {swimmers.length === 0 && (
+            <div className="text-center py-5 text-primary">
+              <i className="bi bi-people fs-1 opacity-50"></i>
+              <p className="m-0">No swimmers registered yet.</p>
+              <p className="small m-0">Add swimmers to get started with the competition.</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

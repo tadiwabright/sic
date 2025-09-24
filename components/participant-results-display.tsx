@@ -1,13 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { Trophy, Medal, Award, Download, Printer, Search, Filter } from "lucide-react"
 
 interface ParticipantResult {
   id: number
@@ -120,11 +113,11 @@ export default function ParticipantResultsDisplay() {
   const getPositionIcon = (position: number) => {
     switch (position) {
       case 1:
-        return <Trophy className="h-4 w-4 text-yellow-500" />
+        return <i className="bi bi-trophy text-warning"></i>
       case 2:
-        return <Medal className="h-4 w-4 text-gray-400" />
+        return <i className="bi bi-award text-secondary"></i>
       case 3:
-        return <Award className="h-4 w-4 text-amber-600" />
+        return <i className="bi bi-award text-warning"></i>
       default:
         return null
     }
@@ -132,22 +125,15 @@ export default function ParticipantResultsDisplay() {
 
   const getPositionBadge = (position: number) => {
     const suffix = position === 1 ? "st" : position === 2 ? "nd" : position === 3 ? "rd" : "th"
-    const variant = position <= 3 ? "default" : "secondary"
-
+    let cls = "badge text-bg-light d-inline-flex align-items-center gap-1"
+    if (position === 1) cls = "badge text-bg-warning d-inline-flex align-items-center gap-1"
+    if (position === 2) cls = "badge text-bg-secondary d-inline-flex align-items-center gap-1"
+    if (position === 3) cls = "badge text-bg-warning d-inline-flex align-items-center gap-1"
     return (
-      <Badge
-        variant={variant}
-        className={`
-        ${position === 1 ? "bg-yellow-500 text-white" : ""}
-        ${position === 2 ? "bg-gray-400 text-white" : ""}
-        ${position === 3 ? "bg-amber-600 text-white" : ""}
-        flex items-center gap-1
-      `}
-      >
-        {getPositionIcon(position)}
-        {position}
+      <span className={cls}>
+        {getPositionIcon(position)} {position}
         {suffix}
-      </Badge>
+      </span>
     )
   }
 
@@ -208,187 +194,148 @@ export default function ParticipantResultsDisplay() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="d-flex align-items-center justify-content-center p-4">
+        <div className="spinner-border text-primary" role="status"></div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="d-grid gap-3">
       {/* Header and Controls */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Participant Results & Rankings</span>
-            <div className="flex gap-2">
-              <Button onClick={() => exportResults("pdf")} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export PDF
-              </Button>
-              <Button onClick={() => exportResults("excel")} variant="outline" size="sm">
-                <Download className="h-4 w-4 mr-2" />
-                Export Excel
-              </Button>
-              <Button onClick={printResults} variant="outline" size="sm">
-                <Printer className="h-4 w-4 mr-2" />
-                Print
-              </Button>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search participants, events, or houses..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+      <div className="card">
+        <div className="card-header d-flex align-items-center justify-content-between">
+          <span className="fw-semibold">Participant Results & Rankings</span>
+          <div className="d-flex gap-2">
+            <button onClick={() => exportResults('pdf')} className="btn btn-outline-secondary btn-sm"><i className="bi bi-download me-1"></i>Export PDF</button>
+            <button onClick={() => exportResults('excel')} className="btn btn-outline-secondary btn-sm"><i className="bi bi-download me-1"></i>Export Excel</button>
+            <button onClick={printResults} className="btn btn-outline-secondary btn-sm"><i className="bi bi-printer me-1"></i>Print</button>
+          </div>
+        </div>
+        <div className="card-body">
+          <div className="row g-3 align-items-center">
+            <div className="col-12 col-md">
+              <div className="position-relative">
+                <i className="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-secondary"></i>
+                <input className="form-control ps-5" placeholder="Search participants, events, or houses..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
               </div>
             </div>
-            <Select value={selectedEvent} onValueChange={setSelectedEvent}>
-              <SelectTrigger className="w-[200px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by event" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Events</SelectItem>
-                {events.map((event) => (
-                  <SelectItem key={event.id} value={event.name}>
-                    {event.name} - {event.distance}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={selectedHouse} onValueChange={setSelectedHouse}>
-              <SelectTrigger className="w-[200px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by house" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Houses</SelectItem>
-                {houses.map((house) => (
-                  <SelectItem key={house.id} value={house.name}>
-                    {house.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="col-6 col-md-auto">
+              <div className="input-group">
+                <span className="input-group-text"><i className="bi bi-funnel"></i></span>
+                <select className="form-select" style={{ minWidth: 200 }} value={selectedEvent} onChange={(e) => setSelectedEvent(e.target.value)}>
+                  <option value="all">All Events</option>
+                  {events.map((event) => (
+                    <option key={event.id} value={event.name}>{event.name} - {event.distance}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="col-6 col-md-auto">
+              <div className="input-group">
+                <span className="input-group-text"><i className="bi bi-funnel"></i></span>
+                <select className="form-select" style={{ minWidth: 200 }} value={selectedHouse} onChange={(e) => setSelectedHouse(e.target.value)}>
+                  <option value="all">All Houses</option>
+                  {houses.map((house) => (
+                    <option key={house.id} value={house.name}>{house.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Results Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Position</TableHead>
-                  <TableHead>Participant</TableHead>
-                  <TableHead>House</TableHead>
-                  <TableHead>Event</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Points</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+      <div className="card">
+        <div className="card-body p-0">
+          <div className="table-responsive">
+            <table className="table table-hover align-middle mb-0">
+              <thead className="table-light">
+                <tr>
+                  <th scope="col">Position</th>
+                  <th scope="col">Participant</th>
+                  <th scope="col">House</th>
+                  <th scope="col">Event</th>
+                  <th scope="col">Time</th>
+                  <th scope="col">Points</th>
+                  <th scope="col">Status</th>
+                  <th scope="col">Date</th>
+                </tr>
+              </thead>
+              <tbody>
                 {filteredResults.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
-                      No results found matching your criteria
-                    </TableCell>
-                  </TableRow>
+                  <tr>
+                    <td colSpan={8} className="text-center py-4 text-secondary">No results found matching your criteria</td>
+                  </tr>
                 ) : (
                   filteredResults.map((result) => (
-                    <TableRow key={result.id} className="hover:bg-gray-50">
-                      <TableCell>{getPositionBadge(result.position)}</TableCell>
-                      <TableCell className="font-medium">{result.swimmer_name}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: result.house_color }} />
+                    <tr key={result.id}>
+                      <td>{getPositionBadge(result.position)}</td>
+                      <td className="fw-semibold">{result.swimmer_name}</td>
+                      <td>
+                        <div className="d-flex align-items-center gap-2">
+                          <span className="rounded-circle" style={{ width: 10, height: 10, backgroundColor: result.house_color, display: 'inline-block' }} />
                           {result.house_name}
                         </div>
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td>
                         <div>
-                          <div className="font-medium">{result.event_name}</div>
-                          <div className="text-sm text-gray-500">
-                            {result.event_distance} • {result.event_category}
-                          </div>
+                          <div className="fw-medium">{result.event_name}</div>
+                          <div className="small text-secondary">{result.event_distance} • {result.event_category}</div>
                         </div>
-                      </TableCell>
-                      <TableCell className="font-mono">{formatTime(result.time_seconds)}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="font-bold">
-                          {result.points} pts
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={result.status === "completed" ? "default" : "secondary"}
-                          className={
-                            result.status === "completed"
-                              ? "bg-green-100 text-green-800"
-                              : result.status === "disqualified"
-                                ? "bg-red-100 text-red-800"
-                                : "bg-yellow-100 text-yellow-800"
-                          }
-                        >
+                      </td>
+                      <td className="font-monospace">{formatTime(result.time_seconds)}</td>
+                      <td><span className="badge text-bg-light fw-bold">{result.points} pts</span></td>
+                      <td>
+                        <span className={`badge ${result.status === 'completed' ? 'text-bg-success' : result.status === 'disqualified' ? 'text-bg-danger' : 'text-bg-warning'}`}>
                           {result.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-sm text-gray-500">
-                        {new Date(result.created_at).toLocaleDateString()}
-                      </TableCell>
-                    </TableRow>
+                        </span>
+                      </td>
+                      <td className="small text-secondary">{new Date(result.created_at).toLocaleDateString()}</td>
+                    </tr>
                   ))
                 )}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-blue-600">{filteredResults.length}</div>
-            <div className="text-sm text-gray-600">Total Results</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-green-600">
-              {new Set(filteredResults.map((r) => r.event_name)).size}
+      <div className="row g-3">
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card h-100">
+            <div className="card-body">
+              <div className="fw-bold fs-4 text-primary">{filteredResults.length}</div>
+              <div className="small text-secondary">Total Results</div>
             </div>
-            <div className="text-sm text-gray-600">Events</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-purple-600">
-              {new Set(filteredResults.map((r) => r.swimmer_name)).size}
+          </div>
+        </div>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card h-100">
+            <div className="card-body">
+              <div className="fw-bold fs-4 text-success">{new Set(filteredResults.map((r) => r.event_name)).size}</div>
+              <div className="small text-secondary">Events</div>
             </div>
-            <div className="text-sm text-gray-600">Participants</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold text-orange-600">
-              {filteredResults.reduce((sum, r) => sum + r.points, 0)}
+          </div>
+        </div>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card h-100">
+            <div className="card-body">
+              <div className="fw-bold fs-4 text-warning">{new Set(filteredResults.map((r) => r.swimmer_name)).size}</div>
+              <div className="small text-secondary">Participants</div>
             </div>
-            <div className="text-sm text-gray-600">Total Points</div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card h-100">
+            <div className="card-body">
+              <div className="fw-bold fs-4 text-info">{filteredResults.reduce((sum, r) => sum + r.points, 0)}</div>
+              <div className="small text-secondary">Total Points</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

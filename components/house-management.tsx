@@ -1,20 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Badge } from "@/components/ui/badge"
-import { Trash2, Edit, Plus, Users, Trophy } from "lucide-react"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 
 interface House {
   id: number
@@ -108,145 +94,94 @@ export default function HouseManagement() {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center p-8">Loading houses...</div>
+    return <div className="d-flex align-items-center justify-content-center p-4">Loading houses...</div>
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="d-grid gap-3">
+      <div className="d-flex align-items-center justify-content-between">
         <div>
-          <h2 className="text-2xl font-bold">House Management</h2>
-          <p className="text-muted-foreground">Manage competition houses and their details</p>
+          <h2 className="h4 m-0">House Management</h2>
+          <p className="text-primary m-0 small">Manage competition houses and their details</p>
         </div>
-
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="button-lift">
-              <Plus className="w-4 h-4 mr-2" />
-              Add House
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create New House</DialogTitle>
-              <DialogDescription>Add a new house to the competition</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="house-name">House Name</Label>
-                <Input
-                  id="house-name"
-                  value={newHouse.name}
-                  onChange={(e) => setNewHouse({ ...newHouse, name: e.target.value })}
-                  placeholder="Enter house name"
-                />
-              </div>
-              <div>
-                <Label>House Color</Label>
-                <div className="flex gap-2 mt-2">
-                  {houseColors.map((color) => (
-                    <button
-                      key={color.value}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        newHouse.color === color.value ? "border-foreground scale-110" : "border-border"
-                      }`}
-                      style={{ backgroundColor: color.value }}
-                      onClick={() => setNewHouse({ ...newHouse, color: color.value })}
-                    />
-                  ))}
-                </div>
-              </div>
-              <Button onClick={handleCreateHouse} className="w-full">
-                Create House
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <button className="btn btn-primary" onClick={handleCreateHouse} disabled={!newHouse.name}>
+          <i className="bi bi-plus-circle me-2"></i> Add House
+        </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Add House */}
+      <div className="card">
+        <div className="card-header"><span className="fw-semibold">Create New House</span></div>
+        <div className="card-body d-grid gap-2">
+          <div>
+            <label htmlFor="house-name" className="form-label">House Name</label>
+            <input id="house-name" className="form-control" value={newHouse.name} onChange={(e) => setNewHouse({ ...newHouse, name: e.target.value })} placeholder="Enter house name" />
+          </div>
+          <div>
+            <label className="form-label">House Color</label>
+            <div className="d-flex gap-2 mt-1">
+              {houseColors.map((color) => (
+                <button key={color.value} type="button" className={`rounded-circle border ${newHouse.color === color.value ? 'border-primary' : 'border-secondary-subtle'}`} style={{ width: 28, height: 28, backgroundColor: color.value }} onClick={() => setNewHouse({ ...newHouse, color: color.value })} />
+              ))}
+            </div>
+          </div>
+          <button className="btn btn-primary" onClick={handleCreateHouse} disabled={!newHouse.name}>Create House</button>
+        </div>
+      </div>
+
+      {/* House Cards */}
+      <div className="row g-3">
         {houses.map((house) => (
-          <Card key={house.id} className="card-hover">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-6 h-6 rounded-full border-2 border-white shadow-sm"
-                    style={{ backgroundColor: house.color }}
-                  />
-                  <CardTitle className="text-lg">{house.name}</CardTitle>
+          <div key={house.id} className="col-12 col-md-6 col-lg-4">
+            <div className="card h-100">
+              <div className="card-header py-2 d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center gap-2">
+                  <div className="rounded-circle border border-white" style={{ width: 20, height: 20, backgroundColor: house.color }} />
+                  <span className="fw-semibold">{house.name}</span>
                 </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="sm" onClick={() => setEditingHouse(house)}>
-                    <Edit className="w-4 h-4" />
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => handleDeleteHouse(house.id)}>
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                <div className="d-flex gap-1">
+                  <button className="btn btn-outline-secondary btn-sm" onClick={() => setEditingHouse(house)} title="Edit"><i className="bi bi-pencil"></i></button>
+                  <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeleteHouse(house.id)} title="Delete"><i className="bi bi-trash"></i></button>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Swimmers</span>
-                  </div>
-                  <Badge variant="secondary">{house.swimmer_count}</Badge>
+              <div className="card-body d-grid gap-2">
+                <div className="d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center gap-2"><i className="bi bi-people text-primary"></i><span className="small text-primary">Swimmers</span></div>
+                  <span className="badge text-bg-secondary">{house.swimmer_count}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Trophy className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">Points</span>
-                  </div>
-                  <Badge className="font-mono font-bold" style={{ backgroundColor: house.color, color: "white" }}>
-                    {house.total_points}
-                  </Badge>
+                <div className="d-flex align-items-center justify-content-between">
+                  <div className="d-flex align-items-center gap-2"><i className="bi bi-trophy text-primary"></i><span className="small text-primary">Points</span></div>
+                  <span className="badge" style={{ backgroundColor: house.color, color: 'var(--bs-body-bg)' }}>{house.total_points}</span>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         ))}
       </div>
 
+      {/* Edit House */}
       {editingHouse && (
-        <Dialog open={!!editingHouse} onOpenChange={() => setEditingHouse(null)}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit House</DialogTitle>
-              <DialogDescription>Update house details</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="edit-house-name">House Name</Label>
-                <Input
-                  id="edit-house-name"
-                  value={editingHouse.name}
-                  onChange={(e) => setEditingHouse({ ...editingHouse, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>House Color</Label>
-                <div className="flex gap-2 mt-2">
-                  {houseColors.map((color) => (
-                    <button
-                      key={color.value}
-                      className={`w-8 h-8 rounded-full border-2 transition-all ${
-                        editingHouse.color === color.value ? "border-foreground scale-110" : "border-border"
-                      }`}
-                      style={{ backgroundColor: color.value }}
-                      onClick={() => setEditingHouse({ ...editingHouse, color: color.value })}
-                    />
-                  ))}
-                </div>
-              </div>
-              <Button onClick={handleUpdateHouse} className="w-full">
-                Update House
-              </Button>
+        <div className="card">
+          <div className="card-header"><span className="fw-semibold">Edit House</span></div>
+          <div className="card-body d-grid gap-2">
+            <div>
+              <label htmlFor="edit-house-name" className="form-label">House Name</label>
+              <input id="edit-house-name" className="form-control" value={editingHouse.name} onChange={(e) => setEditingHouse({ ...editingHouse, name: e.target.value })} />
             </div>
-          </DialogContent>
-        </Dialog>
+            <div>
+              <label className="form-label">House Color</label>
+              <div className="d-flex gap-2 mt-1">
+                {houseColors.map((color) => (
+                  <button key={color.value} type="button" className={`rounded-circle border ${editingHouse.color === color.value ? 'border-primary' : 'border-secondary-subtle'}`} style={{ width: 28, height: 28, backgroundColor: color.value }} onClick={() => setEditingHouse({ ...editingHouse, color: color.value })} />
+                ))}
+              </div>
+            </div>
+            <div className="d-flex gap-2">
+              <button className="btn btn-primary" onClick={handleUpdateHouse}>Update House</button>
+              <button className="btn btn-outline-secondary" onClick={() => setEditingHouse(null)}>Cancel</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

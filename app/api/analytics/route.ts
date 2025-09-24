@@ -61,27 +61,27 @@ export async function GET(request: NextRequest) {
         COUNT(r.id) as participant_count,
         COUNT(r.id) > 0 as completed,
         CASE 
-          WHEN COUNT(r.time) > 0 
-          THEN CONCAT(
-            FLOOR(AVG(EXTRACT(EPOCH FROM r.time)) / 60), ':',
-            LPAD(FLOOR(AVG(EXTRACT(EPOCH FROM r.time)) % 60)::text, 2, '0')
+          WHEN COUNT(r.time_seconds) > 0 
+          THEN (
+            (FLOOR(AVG(r.time_seconds) / 60))::text || ':' ||
+            to_char(ROUND(MOD(AVG(r.time_seconds), 60)::numeric, 2), 'FM00.00')
           )
           ELSE NULL 
         END as avg_time
       FROM events e
       LEFT JOIN results r ON e.id = r.event_id
       GROUP BY e.id, e.name
-      ORDER BY e.date DESC, e.name
+      ORDER BY e.event_order ASC, e.name
     `
 
     // Performance Trends (simplified - showing cumulative points over time)
     const performanceTrends = await sql`
       SELECT 
-        e.date::text as event_date,
+        (e.event_order)::text as event_date,
         h.name as house_name,
         SUM(r.points) OVER (
           PARTITION BY h.id 
-          ORDER BY e.date 
+          ORDER BY e.event_order 
           ROWS UNBOUNDED PRECEDING
         ) as cumulative_points
       FROM events e
@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
       JOIN swimmers s ON r.swimmer_id = s.id
       JOIN houses h ON s.house_id = h.id
       WHERE r.points > 0
-      ORDER BY e.date, h.name
+      ORDER BY e.event_order, h.name
     `
 
     return NextResponse.json({

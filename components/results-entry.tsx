@@ -1,13 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Trash2, Plus, Save, Clock } from "lucide-react"
 import { calculatePositionsAndPoints } from "@/lib/scoring"
 
 // Local types to avoid importing server-only code
@@ -224,122 +217,129 @@ export function ResultsEntry() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Results Entry</h2>
-        <Card>
-          <CardContent className="p-6">
+      <div className="d-grid gap-3">
+        <h2 className="h4 m-0">Results Entry</h2>
+        <div className="card">
+          <div className="card-body">
             <div>Loading...</div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Results Entry</h2>
-        <Badge variant="secondary">
-          <Clock className="mr-1 h-3 w-3" />
+    <div className="d-grid gap-3">
+      <div className="d-flex align-items-center justify-content-between">
+        <h2 className="h4 m-0">Results Entry</h2>
+        <span className="badge text-bg-secondary d-inline-flex align-items-center gap-1">
+          <i className="bi bi-clock"></i>
           Live Entry
-        </Badge>
+        </span>
       </div>
 
       {/* Event Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Event</CardTitle>
-          <CardDescription>Choose an event to enter or update results</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Select value={selectedEventId} onValueChange={setSelectedEventId}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select an event..." />
-            </SelectTrigger>
-            <SelectContent>
-              {events.map((event) => (
-                <SelectItem key={event.id} value={event.id.toString()}>
-                  {event.name} ({event.category} - {event.distance})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      <div className="card">
+        <div className="card-header">
+          <div className="fw-semibold">Select Event</div>
+          <div className="text-body-secondary small">Choose an event to enter or update results</div>
+        </div>
+        <div className="card-body">
+          <select
+            className="form-select"
+            value={selectedEventId}
+            onChange={(e) => setSelectedEventId(e.target.value)}
+          >
+            <option value="">Select an event...</option>
+            {events.map((event) => (
+              <option key={event.id} value={event.id.toString()}>
+                {event.name} ({event.category} - {event.distance})
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {selectedEventId && (
         <>
           {/* Existing Results Display */}
           {existingResults.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Current Results</CardTitle>
-                <CardDescription>Saved results for this event</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {existingResults.map((result, index) => (
-                    <div key={result.id} className="flex items-center justify-between p-3 rounded-lg border">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold ${getPositionColor(result.position)}`}
-                        >
-                          {result.position || "DQ"}
-                        </div>
-                        <div
-                          className="w-4 h-4 rounded-full"
-                          style={{ backgroundColor: (result as any).house_color }}
-                        />
-                        <div>
-                          <div className="font-medium">{(result as any).swimmer_name}</div>
-                          <div className="text-sm text-muted-foreground">{(result as any).house_name}</div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-mono text-lg">{formatTime(result.time_seconds)}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {result.points} points • {result.status}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+            <div className="card">
+              <div className="card-header">
+                <div className="fw-semibold">Current Results</div>
+                <div className="text-body-secondary small">Saved results for this event</div>
+              </div>
+              <div className="card-body p-0">
+                <div className="table-responsive">
+                  <table className="table table-hover table-sm align-middle mb-0">
+                    <thead className="table-light">
+                      <tr>
+                        <th scope="col">Pos</th>
+                        <th scope="col">Swimmer</th>
+                        <th scope="col">House</th>
+                        <th scope="col">Time</th>
+                        <th scope="col">Points</th>
+                        <th scope="col">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {existingResults.map((result) => (
+                        <tr key={result.id}>
+                          <td>
+                            <span className="badge text-bg-secondary">
+                              {result.position || "DQ"}
+                            </span>
+                          </td>
+                          <td className="fw-semibold">{(result as any).swimmer_name}</td>
+                          <td>
+                            <span className="badge" style={{ backgroundColor: (result as any).house_color, color: 'var(--bs-body-bg)' }}>
+                              {(result as any).house_name}
+                            </span>
+                          </td>
+                          <td className="font-monospace">{formatTime(result.time_seconds)}</td>
+                          <td className="fw-bold">{result.points}</td>
+                          <td>
+                            <span className="text-primary small text-uppercase">{result.status}</span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           )}
 
           {/* Results Entry Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Enter Results</CardTitle>
-              <CardDescription>Add or update swimmer times and statuses</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+          <div className="card">
+            <div className="card-header">
+              <div className="fw-semibold">Enter Results</div>
+              <div className="text-body-secondary small">Add or update swimmer times and statuses</div>
+            </div>
+            <div className="card-body d-grid gap-3">
               {results.map((result, index) => (
-                <div key={index} className="flex items-end gap-4 p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <Label>Swimmer</Label>
-                    <Select
+                <div key={index} className="row g-3 align-items-end border rounded-2 p-3">
+                  <div className="col-12 col-md">
+                    <label className="form-label">Swimmer</label>
+                    <select
+                      className="form-select"
                       value={result.swimmer_id.toString()}
-                      onValueChange={(value) => updateResult(index, "swimmer_id", value)}
+                      onChange={(e) => updateResult(index, "swimmer_id", e.target.value)}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select swimmer..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {swimmers.map((swimmer) => (
-                          <SelectItem key={swimmer.id} value={swimmer.id.toString()}>
-                            {swimmer.name} ({(swimmer as any).house_name})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      <option value="0">Select swimmer...</option>
+                      {swimmers.map((swimmer) => (
+                        <option key={swimmer.id} value={swimmer.id.toString()}>
+                          {swimmer.name} ({(swimmer as any).house_name})
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
-                  <div className="w-20">
-                    <Label>Minutes</Label>
-                    <Input
+                  <div className="col-6 col-md-2">
+                    <label className="form-label">Minutes</label>
+                    <input
                       type="number"
+                      className="form-control"
                       placeholder="0"
                       value={result.time_minutes}
                       onChange={(e) => updateResult(index, "time_minutes", e.target.value)}
@@ -347,11 +347,12 @@ export function ResultsEntry() {
                     />
                   </div>
 
-                  <div className="w-24">
-                    <Label>Seconds</Label>
-                    <Input
+                  <div className="col-6 col-md-2">
+                    <label className="form-label">Seconds</label>
+                    <input
                       type="number"
                       step="0.01"
+                      className="form-control"
                       placeholder="0.00"
                       value={result.time_seconds}
                       onChange={(e) => updateResult(index, "time_seconds", e.target.value)}
@@ -359,39 +360,40 @@ export function ResultsEntry() {
                     />
                   </div>
 
-                  <div className="w-32">
-                    <Label>Status</Label>
-                    <Select value={result.status} onValueChange={(value) => updateResult(index, "status", value)}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="completed">Completed</SelectItem>
-                        <SelectItem value="disqualified">Disqualified</SelectItem>
-                        <SelectItem value="did_not_start">Did Not Start</SelectItem>
-                        <SelectItem value="did_not_finish">Did Not Finish</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <div className="col-12 col-md-3">
+                    <label className="form-label">Status</label>
+                    <select
+                      className="form-select"
+                      value={result.status}
+                      onChange={(e) => updateResult(index, "status", e.target.value)}
+                    >
+                      <option value="completed">Completed</option>
+                      <option value="disqualified">Disqualified</option>
+                      <option value="did_not_start">Did Not Start</option>
+                      <option value="did_not_finish">Did Not Finish</option>
+                    </select>
                   </div>
 
-                  <Button variant="outline" size="icon" onClick={() => removeResult(index)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                  <div className="col-12 col-md-auto d-flex gap-2">
+                    <button type="button" className="btn btn-outline-danger" onClick={() => removeResult(index)} title="Remove">
+                      <i className="bi bi-trash me-1"></i> Remove
+                    </button>
+                  </div>
                 </div>
               ))}
 
-              <div className="flex gap-2">
-                <Button variant="outline" onClick={addSwimmerResult}>
-                  <Plus className="mr-2 h-4 w-4" />
+              <div className="d-flex gap-2">
+                <button type="button" className="btn btn-outline-secondary" onClick={addSwimmerResult}>
+                  <i className="bi bi-plus-circle me-1"></i>
                   Add Swimmer
-                </Button>
-                <Button onClick={saveResults} disabled={saving || results.length === 0}>
-                  <Save className="mr-2 h-4 w-4" />
+                </button>
+                <button type="button" className="btn btn-primary" onClick={saveResults} disabled={saving || results.length === 0}>
+                  <i className="bi bi-save me-1"></i>
                   {saving ? "Saving..." : "Save Results"}
-                </Button>
+                </button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </>
       )}
     </div>

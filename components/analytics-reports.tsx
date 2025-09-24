@@ -1,11 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   BarChart,
   Bar,
@@ -20,7 +15,7 @@ import {
   LineChart,
   Line,
 } from "recharts"
-import { Download, Trophy, Medal, Award, TrendingUp, Users, Calendar } from "lucide-react"
+// Replaced lucide-react icons with Bootstrap Icons
 
 interface AnalyticsData {
   housePerformance: Array<{
@@ -52,6 +47,15 @@ interface AnalyticsData {
   }>
 }
 
+function normalizeAnalyticsData(raw: any): AnalyticsData {
+  return {
+    housePerformance: Array.isArray(raw?.housePerformance) ? raw.housePerformance : [],
+    topSwimmers: Array.isArray(raw?.topSwimmers) ? raw.topSwimmers : [],
+    eventStats: Array.isArray(raw?.eventStats) ? raw.eventStats : [],
+    performanceTrends: Array.isArray(raw?.performanceTrends) ? raw.performanceTrends : [],
+  }
+}
+
 export default function AnalyticsReports() {
   const [data, setData] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
@@ -63,10 +67,11 @@ export default function AnalyticsReports() {
   }, [selectedHouse])
 
   const fetchAnalytics = async () => {
+    setLoading(true)
     try {
       const response = await fetch(`/api/analytics?house=${selectedHouse}`)
       const analyticsData = await response.json()
-      setData(analyticsData)
+      setData(normalizeAnalyticsData(analyticsData))
     } catch (error) {
       console.error("Error fetching analytics:", error)
     } finally {
@@ -92,128 +97,122 @@ export default function AnalyticsReports() {
   }
 
   if (loading) {
-    return <div className="flex items-center justify-center p-8">Loading analytics...</div>
+    return <div className="d-flex align-items-center justify-content-center p-4">Loading analytics...</div>
   }
 
   if (!data) {
-    return <div className="flex items-center justify-center p-8">No data available</div>
+    return <div className="d-flex align-items-center justify-content-center p-4">No data available</div>
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="d-grid gap-3">
+      <div className="d-flex align-items-center justify-content-between">
         <div>
-          <h2 className="text-2xl font-bold">Analytics & Reports</h2>
-          <p className="text-muted-foreground">Comprehensive competition performance analysis</p>
+          <h2 className="h4 m-0">Analytics & Reports</h2>
+          <p className="text-primary m-0 small">Comprehensive competition performance analysis</p>
         </div>
 
-        <div className="flex gap-3">
-          <Select value={selectedHouse} onValueChange={setSelectedHouse}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter by house" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Houses</SelectItem>
-              {data.housePerformance.map((house) => (
-                <SelectItem key={house.house_name} value={house.house_name}>
-                  {house.house_name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="d-flex gap-2">
+          <select className="form-select" style={{ width: 200 }} value={selectedHouse} onChange={(e) => setSelectedHouse(e.target.value)}>
+            <option value="all">All Houses</option>
+            {data.housePerformance.map((house) => (
+              <option key={house.house_name} value={house.house_name}>{house.house_name}</option>
+            ))}
+          </select>
 
-          <Button variant="outline" onClick={() => exportReport("pdf")} className="button-lift">
-            <Download className="w-4 h-4 mr-2" />
-            Export PDF
-          </Button>
-
-          <Button variant="outline" onClick={() => exportReport("excel")} className="button-lift">
-            <Download className="w-4 h-4 mr-2" />
-            Export Excel
-          </Button>
+          <button className="btn btn-outline-secondary" onClick={() => exportReport('pdf')}>
+            <i className="bi bi-download me-2"></i> Export PDF
+          </button>
+          <button className="btn btn-outline-secondary" onClick={() => exportReport('excel')}>
+            <i className="bi bi-download me-2"></i> Export Excel
+          </button>
         </div>
       </div>
 
-      <Tabs value={reportType} onValueChange={setReportType} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="performance">Performance</TabsTrigger>
-          <TabsTrigger value="swimmers">Top Swimmers</TabsTrigger>
-          <TabsTrigger value="events">Event Stats</TabsTrigger>
-        </TabsList>
+      {/* Tabs */}
+      <ul className="nav nav-tabs">
+        <li className="nav-item">
+          <button className={`nav-link ${reportType === 'overview' ? 'active' : ''}`} onClick={() => setReportType('overview')}>Overview</button>
+        </li>
+        <li className="nav-item">
+          <button className={`nav-link ${reportType === 'performance' ? 'active' : ''}`} onClick={() => setReportType('performance')}>Performance</button>
+        </li>
+        <li className="nav-item">
+          <button className={`nav-link ${reportType === 'swimmers' ? 'active' : ''}`} onClick={() => setReportType('swimmers')}>Top Swimmers</button>
+        </li>
+        <li className="nav-item">
+          <button className={`nav-link ${reportType === 'events' ? 'active' : ''}`} onClick={() => setReportType('events')}>Event Stats</button>
+        </li>
+      </ul>
 
-        <TabsContent value="overview" className="space-y-6">
-          {/* House Performance Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {reportType === 'overview' && (
+        <div className="d-grid gap-3">
+          <div className="row g-3">
             {data.housePerformance.map((house) => (
-              <Card key={house.house_name} className="card-hover">
-                <CardHeader className="pb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: house.house_color }} />
-                    <CardTitle className="text-lg">{house.house_name}</CardTitle>
+              <div key={house.house_name} className="col-12 col-md-6 col-lg-3">
+                <div className="card h-100">
+                  <div className="card-header py-2">
+                    <div className="d-flex align-items-center gap-2">
+                      <div className="rounded-circle" style={{ width: 12, height: 12, backgroundColor: house.house_color }} />
+                      <span className="fw-semibold">{house.house_name}</span>
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Total Points</span>
-                    <Badge
-                      className="font-mono font-bold"
-                      style={{ backgroundColor: house.house_color, color: "white" }}
-                    >
-                      {house.total_points}
-                    </Badge>
+                  <div className="card-body d-grid gap-2">
+                    <div className="d-flex align-items-center justify-content-between">
+                      <span className="small text-primary">Total Points</span>
+                      <span className="badge" style={{ backgroundColor: house.house_color, color: 'var(--bs-body-bg)' }}>
+                        {house.total_points}
+                      </span>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <span className="small text-primary">Event Wins</span>
+                      <span className="badge text-bg-secondary">{house.event_wins}</span>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <span className="small text-primary">Swimmers</span>
+                      <span className="badge text-bg-light">{house.swimmer_count}</span>
+                    </div>
+                    <div className="d-flex align-items-center justify-content-between">
+                      <span className="small text-primary">Avg/Swimmer</span>
+                      <span className="badge text-bg-light font-monospace">{house.avg_points_per_swimmer.toFixed(1)}</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Event Wins</span>
-                    <Badge variant="secondary">{house.event_wins}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Swimmers</span>
-                    <Badge variant="outline">{house.swimmer_count}</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Avg/Swimmer</span>
-                    <Badge variant="outline" className="font-mono">
-                      {house.avg_points_per_swimmer.toFixed(1)}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
 
-          {/* Points Distribution Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart className="w-5 h-5" />
-                House Points Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="card">
+            <div className="card-header d-flex align-items-center gap-2">
+              <span className="fw-semibold d-flex align-items-center gap-2"><span className="bi"></span>House Points Distribution</span>
+            </div>
+            <div className="card-body">
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={data.housePerformance}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="house_name" />
                   <YAxis />
                   <Tooltip />
-                  <Bar dataKey="total_points" fill={(entry) => entry.house_color} />
+                  <Bar dataKey="total_points">
+                    {data.housePerformance.map((entry, index) => (
+                      <Cell key={`bar-cell-${index}`} fill={entry.house_color} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </div>
+        </div>
+      )}
 
-        <TabsContent value="performance" className="space-y-6">
-          {/* Performance Trends */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5" />
-                Performance Trends
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+      {reportType === 'performance' && (
+        <div className="d-grid gap-3">
+          <div className="card">
+            <div className="card-header d-flex align-items-center gap-2">
+              <i className="bi bi-graph-up"></i>
+              <span className="fw-semibold">Performance Trends</span>
+            </div>
+            <div className="card-body">
               <ResponsiveContainer width="100%" height={400}>
                 <LineChart data={data.performanceTrends}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -221,41 +220,22 @@ export default function AnalyticsReports() {
                   <YAxis />
                   <Tooltip />
                   {data.housePerformance.map((house) => (
-                    <Line
-                      key={house.house_name}
-                      type="monotone"
-                      dataKey="cumulative_points"
-                      stroke={house.house_color}
-                      strokeWidth={2}
-                      name={house.house_name}
-                    />
+                    <Line key={house.house_name} type="monotone" dataKey="cumulative_points" stroke={house.house_color} strokeWidth={2} name={house.house_name} />
                   ))}
                 </LineChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          {/* Swimmer Participation */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="w-5 h-5" />
-                Swimmer Distribution
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+          <div className="card">
+            <div className="card-header d-flex align-items-center gap-2">
+              <i className="bi bi-pie-chart"></i>
+              <span className="fw-semibold">Swimmer Distribution</span>
+            </div>
+            <div className="card-body">
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie
-                    data={data.housePerformance}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ house_name, swimmer_count }) => `${house_name}: ${swimmer_count}`}
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="swimmer_count"
-                  >
+                  <Pie data={data.housePerformance} cx="50%" cy="50%" labelLine={false} label={({ house_name, swimmer_count }) => `${house_name}: ${swimmer_count}`} outerRadius={80} fill="#8884d8" dataKey="swimmer_count">
                     {data.housePerformance.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.house_color} />
                     ))}
@@ -263,102 +243,79 @@ export default function AnalyticsReports() {
                   <Tooltip />
                 </PieChart>
               </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        </TabsContent>
+            </div>
+          </div>
+        </div>
+      )}
 
-        <TabsContent value="swimmers" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Trophy className="w-5 h-5" />
-                Top Performing Swimmers
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {data.topSwimmers.map((swimmer, index) => (
-                  <div
-                    key={swimmer.swimmer_name}
-                    className="flex items-center justify-between p-4 rounded-lg border card-hover"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        {index === 0 && <Trophy className="w-5 h-5 text-yellow-500 bounce-trophy" />}
-                        {index === 1 && <Medal className="w-5 h-5 text-gray-400" />}
-                        {index === 2 && <Award className="w-5 h-5 text-amber-600" />}
-                        {index > 2 && (
-                          <span className="w-5 h-5 flex items-center justify-center text-sm font-bold">
-                            {index + 1}
-                          </span>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-semibold">{swimmer.swimmer_name}</div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <div className="w-3 h-3 rounded-full" style={{ backgroundColor: swimmer.house_color }} />
-                          {swimmer.house_name}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-mono font-bold text-lg">{swimmer.total_points} pts</div>
-                      <div className="text-sm text-muted-foreground">
-                        {swimmer.event_count} events • Best:{" "}
-                        {swimmer.best_position === 1
-                          ? "1st"
-                          : swimmer.best_position === 2
-                            ? "2nd"
-                            : swimmer.best_position === 3
-                              ? "3rd"
-                              : `${swimmer.best_position}th`}
-                      </div>
+      {reportType === 'swimmers' && (
+        <div className="card">
+          <div className="card-header d-flex align-items-center gap-2">
+            <i className="bi bi-trophy"></i>
+            <span className="fw-semibold">Top Performing Swimmers</span>
+          </div>
+          <div className="card-body d-grid gap-2">
+            {data.topSwimmers.map((swimmer, index) => (
+              <div key={swimmer.swimmer_name} className="d-flex align-items-center justify-content-between p-3 border rounded-2">
+                <div className="d-flex align-items-center gap-3">
+                  <div className="d-flex align-items-center gap-2">
+                    {index === 0 && <i className="bi bi-trophy text-warning"></i>}
+                    {index === 1 && <i className="bi bi-award text-secondary"></i>}
+                    {index === 2 && <i className="bi bi-award text-warning"></i>}
+                    {index > 2 && (
+                      <span className="d-inline-flex align-items-center justify-content-center fw-bold" style={{ width: 20 }}>{index + 1}</span>
+                    )}
+                  </div>
+                  <div>
+                    <div className="fw-semibold">{swimmer.swimmer_name}</div>
+                    <div className="d-flex align-items-center gap-2 small text-secondary">
+                      <div className="rounded-circle" style={{ width: 10, height: 10, backgroundColor: swimmer.house_color }} />
+                      {swimmer.house_name}
                     </div>
                   </div>
-                ))}
+                </div>
+                <div className="text-end">
+                  <div className="font-monospace fw-bold">{swimmer.total_points} pts</div>
+                  <div className="small text-secondary">
+                    {swimmer.event_count} events • Best: {swimmer.best_position === 1 ? '1st' : swimmer.best_position === 2 ? '2nd' : swimmer.best_position === 3 ? '3rd' : `${swimmer.best_position}th`}
+                  </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="events" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {data.eventStats.map((event) => (
-              <Card key={event.event_name} className="card-hover">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {event.event_name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Participants</span>
-                    <Badge variant="secondary" className="flex items-center gap-1">
-                      <Users className="w-3 h-3" />
-                      {event.participant_count}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Status</span>
-                    <Badge variant={event.completed ? "default" : "outline"}>
-                      {event.completed ? "Completed" : "Pending"}
-                    </Badge>
-                  </div>
-                  {event.avg_time && (
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Avg Time</span>
-                      <Badge variant="outline" className="font-mono">
-                        {event.avg_time}
-                      </Badge>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
             ))}
           </div>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
+
+      {reportType === 'events' && (
+        <div className="row g-3">
+          {data.eventStats.map((event) => (
+            <div key={event.event_name} className="col-12 col-md-6 col-lg-4">
+              <div className="card h-100">
+                <div className="card-header py-2 d-flex align-items-center gap-2">
+                  <i className="bi bi-calendar3"></i>
+                  <span className="fw-semibold">{event.event_name}</span>
+                </div>
+                <div className="card-body d-grid gap-2">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <span className="small text-primary">Participants</span>
+                    <span className="badge text-bg-secondary d-inline-flex align-items-center gap-1"><i className="bi bi-people"></i> {event.participant_count}</span>
+                  </div>
+                  <div className="d-flex align-items-center justify-content-between">
+                    <span className="small text-primary">Status</span>
+                    <span className={`badge ${event.completed ? 'text-bg-primary' : 'text-bg-light'}`}>{event.completed ? 'Completed' : 'Pending'}</span>
+                  </div>
+                  {event.avg_time && (
+                    <div className="d-flex align-items-center justify-content-between">
+                      <span className="small text-primary">Avg Time</span>
+                      <span className="badge text-bg-light font-monospace">{event.avg_time}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

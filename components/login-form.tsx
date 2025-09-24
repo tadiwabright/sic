@@ -4,12 +4,6 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Trophy, Loader2 } from "lucide-react"
 
 export function LoginForm() {
   const [email, setEmail] = useState("")
@@ -53,62 +47,37 @@ export function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Trophy className="h-12 w-12 text-primary" />
+    <div className="min-vh-100 d-flex align-items-center justify-content-center p-4 bg-body-tertiary">
+      <div className="card w-100" style={{ maxWidth: 420 }}>
+        <div className="card-header text-center">
+          <div className="d-flex justify-content-center mb-2">
+            <i className="bi bi-trophy fs-3 text-primary"></i>
           </div>
-          <CardTitle className="text-2xl font-bold">Swimming Competition</CardTitle>
-          <CardDescription>Sign in to access the admin dashboard</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@swimming.com"
-                required
-              />
+          <div className="fw-bold">Swimming Competition</div>
+          <div className="small text-body-secondary">Sign in to access the admin dashboard</div>
+        </div>
+        <div className="card-body">
+          <form onSubmit={handleSubmit} className="d-grid gap-3">
+            <div>
+              <label htmlFor="email" className="form-label">Email</label>
+              <input id="email" type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="admin@swimming.com" required />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter your password"
-                required
-              />
+            <div>
+              <label htmlFor="password" className="form-label">Password</label>
+              <input id="password" type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter your password" required />
             </div>
-            {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
-            </Button>
+            {error && (<div className="alert alert-danger" role="alert">{error}</div>)}
+            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+              {loading ? (<><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Signing in...</>) : ("Sign In")}
+            </button>
           </form>
-          <div className="mt-6 text-center text-sm text-muted-foreground">
-            <p>Demo Credentials:</p>
-            <p>Admin: admin@swimming.com / admin123</p>
-            <p>Official: official@swimming.com / admin123</p>
+          <div className="mt-3 text-center small text-body-secondary">
+            <div>Demo Credentials:</div>
+            <div>Admin: admin@swimming.com / admin123</div>
+            <div>Official: official@swimming.com / admin123</div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }

@@ -3,14 +3,6 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Switch } from "@/components/ui/switch"
-import { Plus, Edit, Trash2, Calendar, Users } from "lucide-react"
 // Avoid importing server-only db code; define local type and fetch via API
 interface Event {
   id: number
@@ -158,212 +150,147 @@ export function EventManagement() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Event Management</h2>
-        <Card>
-          <CardContent className="p-6">
-            <div>Loading events...</div>
-          </CardContent>
-        </Card>
+      <div className="d-grid gap-3">
+        <h2 className="h4 m-0">Event Management</h2>
+        <div className="card">
+          <div className="card-body">Loading events...</div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Event Management</h2>
-        <Button onClick={() => setShowAddForm(true)}>
-          <Plus className="mr-2 h-4 w-4" />
+    <div className="d-grid gap-3">
+      <div className="d-flex align-items-center justify-content-between">
+        <h2 className="h4 m-0">Event Management</h2>
+        <button className="btn btn-primary" onClick={() => setShowAddForm(true)}>
+          <i className="bi bi-plus-circle me-2"></i>
           Add Event
-        </Button>
+        </button>
       </div>
 
       {/* Add/Edit Event Form */}
       {showAddForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingEvent ? "Edit Event" : "Add New Event"}</CardTitle>
-            <CardDescription>{editingEvent ? "Update event details" : "Create a new swimming event"}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="name">Event Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="e.g., Boys Under-14 50m Freestyle"
-                    required
-                  />
+        <div className="card">
+          <div className="card-header">
+            <div className="fw-semibold">{editingEvent ? "Edit Event" : "Add New Event"}</div>
+            <div className="text-body-secondary small">{editingEvent ? "Update event details" : "Create a new swimming event"}</div>
+          </div>
+          <div className="card-body">
+            <form onSubmit={handleSubmit} className="d-grid gap-3">
+              <div className="row g-3">
+                <div className="col-md-6">
+                  <label htmlFor="name" className="form-label">Event Name</label>
+                  <input id="name" className="form-control" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g., Boys Under-14 50m Freestyle" required />
                 </div>
-
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select
-                    value={formData.category}
-                    onValueChange={(value) => setFormData({ ...formData, category: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="freestyle">Freestyle</SelectItem>
-                      <SelectItem value="backstroke">Backstroke</SelectItem>
-                      <SelectItem value="breaststroke">Breaststroke</SelectItem>
-                      <SelectItem value="butterfly">Butterfly</SelectItem>
-                      <SelectItem value="individual_medley">Individual Medley</SelectItem>
-                      <SelectItem value="relay">Relay</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="col-md-6">
+                  <label className="form-label">Category</label>
+                  <select className="form-select" value={formData.category} onChange={(e) => setFormData({ ...formData, category: e.target.value })}>
+                    <option value="">Select category</option>
+                    <option value="freestyle">Freestyle</option>
+                    <option value="backstroke">Backstroke</option>
+                    <option value="breaststroke">Breaststroke</option>
+                    <option value="butterfly">Butterfly</option>
+                    <option value="individual_medley">Individual Medley</option>
+                    <option value="relay">Relay</option>
+                  </select>
                 </div>
-
-                <div>
-                  <Label htmlFor="distance">Distance</Label>
-                  <Select
-                    value={formData.distance}
-                    onValueChange={(value) => setFormData({ ...formData, distance: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select distance" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="25m">25m</SelectItem>
-                      <SelectItem value="50m">50m</SelectItem>
-                      <SelectItem value="100m">100m</SelectItem>
-                      <SelectItem value="200m">200m</SelectItem>
-                      <SelectItem value="4x25m">4x25m</SelectItem>
-                      <SelectItem value="4x50m">4x50m</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="col-md-6">
+                  <label className="form-label">Distance</label>
+                  <select className="form-select" value={formData.distance} onChange={(e) => setFormData({ ...formData, distance: e.target.value })}>
+                    <option value="">Select distance</option>
+                    <option value="25m">25m</option>
+                    <option value="50m">50m</option>
+                    <option value="100m">100m</option>
+                    <option value="200m">200m</option>
+                    <option value="4x25m">4x25m</option>
+                    <option value="4x50m">4x50m</option>
+                  </select>
                 </div>
-
-                <div>
-                  <Label htmlFor="gender">Gender</Label>
-                  <Select
-                    value={formData.gender}
-                    onValueChange={(value: "male" | "female" | "mixed") => setFormData({ ...formData, gender: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="mixed">Mixed</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="col-md-6">
+                  <label className="form-label">Gender</label>
+                  <select className="form-select" value={formData.gender} onChange={(e) => setFormData({ ...formData, gender: e.target.value as any })}>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="mixed">Mixed</option>
+                  </select>
                 </div>
-
-                <div>
-                  <Label htmlFor="age_group">Age Group</Label>
-                  <Select
-                    value={formData.age_group}
-                    onValueChange={(value) => setFormData({ ...formData, age_group: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select age group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="under-12">Under 12</SelectItem>
-                      <SelectItem value="under-14">Under 14</SelectItem>
-                      <SelectItem value="under-16">Under 16</SelectItem>
-                      <SelectItem value="under-18">Under 18</SelectItem>
-                      <SelectItem value="open">Open</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="col-md-6">
+                  <label className="form-label">Age Group</label>
+                  <select className="form-select" value={formData.age_group} onChange={(e) => setFormData({ ...formData, age_group: e.target.value })}>
+                    <option value="">Select age group</option>
+                    <option value="under-12">Under 12</option>
+                    <option value="under-14">Under 14</option>
+                    <option value="under-16">Under 16</option>
+                    <option value="under-18">Under 18</option>
+                    <option value="open">Open</option>
+                  </select>
                 </div>
-
-                <div>
-                  <Label htmlFor="max_participants">Max Participants per House</Label>
-                  <Input
-                    id="max_participants"
-                    type="number"
-                    min="1"
-                    max="8"
-                    value={formData.max_participants_per_house}
-                    onChange={(e) =>
-                      setFormData({ ...formData, max_participants_per_house: Number.parseInt(e.target.value) })
-                    }
-                  />
+                <div className="col-md-6">
+                  <label htmlFor="max_participants" className="form-label">Max Participants per House</label>
+                  <input id="max_participants" type="number" min={1} max={8} className="form-control" value={formData.max_participants_per_house} onChange={(e) => setFormData({ ...formData, max_participants_per_house: Number.parseInt(e.target.value) })} />
                 </div>
-
-                <div>
-                  <Label htmlFor="event_order">Event Order</Label>
-                  <Input
-                    id="event_order"
-                    type="number"
-                    min="1"
-                    value={formData.event_order}
-                    onChange={(e) => setFormData({ ...formData, event_order: Number.parseInt(e.target.value) })}
-                  />
+                <div className="col-md-6">
+                  <label htmlFor="event_order" className="form-label">Event Order</label>
+                  <input id="event_order" type="number" min={1} className="form-control" value={formData.event_order} onChange={(e) => setFormData({ ...formData, event_order: Number.parseInt(e.target.value) })} />
                 </div>
-
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="is_active"
-                    checked={formData.is_active}
-                    onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                  />
-                  <Label htmlFor="is_active">Active Event</Label>
+                <div className="col-md-6 d-flex align-items-center">
+                  <div className="form-check form-switch">
+                    <input className="form-check-input" type="checkbox" id="is_active" checked={formData.is_active} onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })} />
+                    <label className="form-check-label" htmlFor="is_active">Active Event</label>
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <Button type="submit">{editingEvent ? "Update Event" : "Create Event"}</Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
-                </Button>
+              <div className="d-flex gap-2">
+                <button type="submit" className="btn btn-primary">{editingEvent ? "Update Event" : "Create Event"}</button>
+                <button type="button" className="btn btn-outline-secondary" onClick={resetForm}>Cancel</button>
               </div>
             </form>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Events List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" />
-            Competition Events
-          </CardTitle>
-          <CardDescription>Manage swimming events and their settings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {events.map((event) => (
-              <div key={event.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-semibold">{event.name}</h3>
-                    <Badge variant={event.is_active ? "default" : "secondary"}>
-                      {event.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    {event.category} • {event.distance} • {event.gender} • {event.age_group}
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <Users className="inline h-3 w-3 mr-1" />
-                    Max {event.max_participants_per_house} per house • Order: {event.event_order}
-                  </div>
+      <div className="card">
+        <div className="card-header d-flex align-items-center gap-2">
+          <i className="bi bi-calendar3 me-1"></i>
+          <span className="fw-semibold">Competition Events</span>
+          <span className="ms-auto text-body-secondary small">Manage swimming events and their settings</span>
+        </div>
+        <div className="card-body d-grid gap-3">
+          {events.map((event) => (
+            <div key={event.id} className="d-flex align-items-center justify-content-between p-3 border rounded-2">
+              <div className="flex-grow-1">
+                <div className="d-flex align-items-center gap-2 mb-1">
+                  <h3 className="h6 m-0 fw-semibold">{event.name}</h3>
+                  <span className={`badge ${event.is_active ? 'text-bg-primary' : 'text-bg-secondary'}`}>
+                    {event.is_active ? 'Active' : 'Inactive'}
+                  </span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Switch checked={event.is_active} onCheckedChange={() => toggleEventStatus(event)} />
-                  <Button variant="outline" size="sm" onClick={() => handleEdit(event)}>
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={() => handleDelete(event.id)}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="small text-primary">
+                  {event.category} • {event.distance} • {event.gender} • {event.age_group}
+                </div>
+                <div className="small text-primary d-flex align-items-center gap-1">
+                  <i className="bi bi-people me-1"></i>
+                  Max {event.max_participants_per_house} per house • Order: {event.event_order}
                 </div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="d-flex align-items-center gap-2">
+                <div className="form-check form-switch m-0">
+                  <input className="form-check-input" type="checkbox" checked={event.is_active} onChange={() => toggleEventStatus(event)} />
+                </div>
+                <button className="btn btn-outline-secondary btn-sm" onClick={() => handleEdit(event)} title="Edit">
+                  <i className="bi bi-pencil"></i>
+                </button>
+                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(event.id)} title="Delete">
+                  <i className="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

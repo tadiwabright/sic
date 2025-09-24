@@ -2,11 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { KeyRound } from "lucide-react"
+// Converted to Bootstrap components; removed shadcn/ui and lucide-react
 
 export default function AdminKeyPage() {
   const [key, setKey] = useState("")
@@ -38,35 +34,47 @@ export default function AdminKeyPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-blue-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <KeyRound className="h-12 w-12 text-primary" />
+    <div className="min-vh-100 d-flex align-items-center justify-content-center p-3 bg-body-tertiary">
+      <div className="card shadow-sm" style={{ maxWidth: 420, width: "100%" }}>
+        <div className="card-header text-center bg-body">
+          <div className="d-flex justify-content-center mb-2">
+            <i className="bi bi-key-fill fs-1 text-primary"></i>
           </div>
-          <CardTitle className="text-2xl font-bold">Admin Access</CardTitle>
-          <CardDescription>Enter the secret key to access the admin dashboard</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={submit} className="space-y-4">
-            <Input
-              type="password"
-              placeholder="Enter secret key"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-              required
-            />
+          <h2 className="h4 mb-1">Admin Access</h2>
+          <div className="text-body-secondary small">Enter the secret key to access the admin dashboard</div>
+        </div>
+        <div className="card-body">
+          <form onSubmit={submit} className="d-grid gap-3">
+            <div>
+              <label className="form-label">Secret key</label>
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Enter secret key"
+                value={key}
+                onChange={(e) => setKey(e.target.value)}
+                required
+              />
+            </div>
             {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
+              <div className="alert alert-danger" role="alert">
+                {error}
+              </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Checking..." : "Enter"}
-            </Button>
+            <button type="submit" className="btn btn-primary w-100" disabled={loading}>
+              {loading ? (
+                <>
+                  <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                  Checking...
+                </>
+              ) : (
+                <>Enter</>
+              )}
+            </button>
           </form>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   )
 }
+

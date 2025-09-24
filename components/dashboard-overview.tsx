@@ -1,9 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Trophy, Users, Calendar, Timer } from "lucide-react"
+// Converted icons to Bootstrap Icons
 // Types mirrored locally to avoid importing server-only code
 interface House {
   id: number
@@ -94,18 +92,20 @@ export function DashboardOverview() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Dashboard Overview</h2>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="d-grid gap-3">
+        <h2 className="h4 m-0">Dashboard Overview</h2>
+        <div className="row g-3">
           {[...Array(4)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Loading...</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">--</div>
-              </CardContent>
-            </Card>
+            <div className="col-12 col-md-6 col-lg-3" key={i}>
+              <div className="card h-100">
+                <div className="card-header py-2 d-flex align-items-center justify-content-between">
+                  <span className="small fw-medium">Loading...</span>
+                </div>
+                <div className="card-body">
+                  <div className="fw-bold fs-4">--</div>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
       </div>
@@ -116,112 +116,107 @@ export function DashboardOverview() {
   const totalSwimmers = swimmers.length
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Dashboard Overview</h2>
-        <Badge variant="secondary" className="bg-accent text-accent-foreground">
-          Competition Active
-        </Badge>
+    <div className="d-grid gap-3">
+      <div className="d-flex align-items-center justify-content-between">
+        <h2 className="h4 m-0">Dashboard Overview</h2>
+        <span className="badge text-bg-secondary">Competition Active</span>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Houses</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{houses.length}</div>
-            <p className="text-xs text-muted-foreground">Competing houses</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Events</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeEvents}</div>
-            <p className="text-xs text-muted-foreground">of {events.length} total events</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Swimmers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalSwimmers}</div>
-            <p className="text-xs text-muted-foreground">Registered participants</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Leading House</CardTitle>
-            <Timer className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{houseScores[0]?.house_name || "TBD"}</div>
-            <p className="text-xs text-muted-foreground">{houseScores[0]?.total_points || 0} points</p>
-          </CardContent>
-        </Card>
+      <div className="row g-3">
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card h-100">
+            <div className="card-header py-2 d-flex align-items-center justify-content-between">
+              <span className="small fw-medium">Total Houses</span>
+              <i className="bi bi-trophy text-secondary"></i>
+            </div>
+            <div className="card-body">
+              <div className="fw-bold fs-4">{houses.length}</div>
+              <div className="small text-primary">Competing houses</div>
+            </div>
+          </div>
+        </div>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card h-100">
+            <div className="card-header py-2 d-flex align-items-center justify-content-between">
+              <span className="small fw-medium">Active Events</span>
+              <i className="bi bi-calendar3 text-secondary"></i>
+            </div>
+            <div className="card-body">
+              <div className="fw-bold fs-4">{activeEvents}</div>
+              <div className="small text-primary">of {events.length} total events</div>
+            </div>
+          </div>
+        </div>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card h-100">
+            <div className="card-header py-2 d-flex align-items-center justify-content-between">
+              <span className="small fw-medium">Total Swimmers</span>
+              <i className="bi bi-people text-secondary"></i>
+            </div>
+            <div className="card-body">
+              <div className="fw-bold fs-4">{totalSwimmers}</div>
+              <div className="small text-primary">Registered participants</div>
+            </div>
+          </div>
+        </div>
+        <div className="col-12 col-md-6 col-lg-3">
+          <div className="card h-100">
+            <div className="card-header py-2 d-flex align-items-center justify-content-between">
+              <span className="small fw-medium">Leading House</span>
+              <i className="bi bi-stopwatch text-secondary"></i>
+            </div>
+            <div className="card-body">
+              <div className="fw-bold fs-4">{houseScores[0]?.house_name || 'TBD'}</div>
+              <div className="small text-secondary">{houseScores[0]?.total_points || 0} points</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* House Standings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Current House Standings</CardTitle>
-          <CardDescription>Live points tally across all events</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {houseScores.map((house, index) => (
-              <div key={house.house_id} className="flex items-center justify-between p-3 rounded-lg border">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold text-muted-foreground">#{index + 1}</span>
-                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: house.house_color }} />
-                    <span className="font-semibold">{house.house_name}</span>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <div className="text-2xl font-bold">{house.total_points}</div>
-                  <div className="text-sm text-muted-foreground">points</div>
-                </div>
+      <div className="card">
+        <div className="card-header">
+          <span className="fw-semibold">Current House Standings</span>
+          <div className="small text-body-secondary">Live points tally across all events</div>
+        </div>
+        <div className="card-body d-grid gap-2">
+          {houseScores.map((house, index) => (
+            <div key={house.house_id} className="d-flex align-items-center justify-content-between p-3 border rounded-2">
+              <div className="d-flex align-items-center gap-2">
+                <span className="fw-bold text-secondary">#{index + 1}</span>
+                <div className="rounded-circle" style={{ width: 12, height: 12, backgroundColor: house.house_color }} />
+                <span className="fw-semibold">{house.house_name}</span>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="text-end">
+                <div className="fw-bold fs-5">{house.total_points}</div>
+                <div className="small text-primary">points</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-      {/* Recent Events */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Upcoming Events</CardTitle>
-          <CardDescription>Next events in the competition schedule</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {events.slice(0, 5).map((event) => (
-              <div key={event.id} className="flex items-center justify-between p-3 rounded-lg border">
-                <div>
-                  <div className="font-medium">{event.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {event.category} • {event.distance} • {event.age_group}
-                  </div>
-                </div>
-                <Badge variant={event.is_active ? "default" : "secondary"}>
-                  {event.is_active ? "Active" : "Scheduled"}
-                </Badge>
+      {/* Upcoming Events */}
+      <div className="card">
+        <div className="card-header">
+          <span className="fw-semibold">Upcoming Events</span>
+          <div className="small text-body-secondary">Next events in the competition schedule</div>
+        </div>
+        <div className="card-body d-grid gap-2">
+          {events.slice(0, 5).map((event) => (
+            <div key={event.id} className="d-flex align-items-center justify-content-between p-3 border rounded-2">
+              <div>
+                <div className="fw-medium">{event.name}</div>
+                <div className="small text-primary">{event.category} • {event.distance} • {event.age_group}</div>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <span className={`badge ${event.is_active ? 'text-bg-primary' : 'text-bg-secondary'}`}>
+                {event.is_active ? 'Active' : 'Scheduled'}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,13 +1,6 @@
 "use client"
 
-import { Calendar } from "@/components/ui/calendar"
-
 import { useState, useEffect } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Trophy, Medal, Clock, RefreshCw, Eye } from "lucide-react"
 
 // Local types to avoid importing server-only code
 interface Event {
@@ -121,206 +114,168 @@ export function LiveScoreboard() {
   }
 
   const getPositionBadge = (position: number | null) => {
-    if (!position) return <Badge variant="secondary">DQ</Badge>
-    if (position === 1) return <Badge className="bg-yellow-500 text-white">1st</Badge>
-    if (position === 2) return <Badge className="bg-gray-400 text-white">2nd</Badge>
-    if (position === 3) return <Badge className="bg-amber-600 text-white">3rd</Badge>
-    return <Badge variant="outline">{position}th</Badge>
+    if (!position) return <span className="badge text-bg-secondary">DQ</span>
+    if (position === 1) return <span className="badge text-bg-warning">1st</span>
+    if (position === 2) return <span className="badge text-bg-secondary">2nd</span>
+    if (position === 3) return <span className="badge text-bg-warning">3rd</span>
+    return <span className="badge text-bg-light">{position}th</span>
   }
 
   const getHousePositionIcon = (index: number) => {
-    if (index === 0) return <Trophy className="h-6 w-6 text-yellow-500" />
-    if (index === 1) return <Medal className="h-6 w-6 text-gray-400" />
-    if (index === 2) return <Medal className="h-6 w-6 text-amber-600" />
-    return (
-      <div className="h-6 w-6 flex items-center justify-center text-lg font-bold text-muted-foreground">
-        #{index + 1}
-      </div>
-    )
+    if (index === 0) return <i className="bi bi-trophy text-warning"></i>
+    if (index === 1) return <i className="bi bi-award text-secondary"></i>
+    if (index === 2) return <i className="bi bi-award text-warning"></i>
+    return <span className="fw-bold text-primary">#{index + 1}</span>
   }
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <h2 className="text-2xl font-bold">Live Scoreboard</h2>
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-center">
-              <RefreshCw className="h-6 w-6 animate-spin mr-2" />
-              Loading scoreboard...
-            </div>
-          </CardContent>
-        </Card>
+      <div className="d-grid gap-3">
+        <h2 className="h4 m-0">Live Scoreboard</h2>
+        <div className="card">
+          <div className="card-body d-flex align-items-center justify-content-center">
+            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Loading scoreboard...
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold">Live Scoreboard</h2>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-accent text-accent-foreground">
-            <Eye className="mr-1 h-3 w-3" />
-            Live
-          </Badge>
-          <Button variant="outline" size="sm" onClick={refreshData} disabled={refreshing}>
-            <RefreshCw className={`mr-2 h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
-            Refresh
-          </Button>
+    <div className="d-grid gap-3">
+      <div className="d-flex align-items-center justify-content-between">
+        <h2 className="h4 m-0">Live Scoreboard</h2>
+        <div className="d-flex align-items-center gap-2">
+          <span className="badge text-bg-secondary d-inline-flex align-items-center gap-1">
+            <i className="bi bi-eye"></i> Live
+          </span>
+          <button className="btn btn-outline-secondary btn-sm" onClick={refreshData} disabled={refreshing}>
+            <i className={`bi bi-arrow-clockwise me-2 ${refreshing ? 'spinner-border spinner-border-sm' : ''}`}></i>
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
       </div>
 
       {/* View Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Scoreboard View</CardTitle>
-          <CardDescription>Last updated: {lastUpdated.toLocaleTimeString()}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Select value={selectedEventId} onValueChange={setSelectedEventId}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="overall">Overall House Standings</SelectItem>
-              {events.map((event) => (
-                <SelectItem key={event.id} value={event.id.toString()}>
-                  {event.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
+      <div className="card">
+        <div className="card-header">
+          <div className="fw-semibold">Scoreboard View</div>
+          <div className="small text-body-secondary">Last updated: {lastUpdated.toLocaleTimeString()}</div>
+        </div>
+        <div className="card-body">
+          <select className="form-select" value={selectedEventId} onChange={(e) => setSelectedEventId(e.target.value)}>
+            <option value="overall">Overall House Standings</option>
+            {events.map((event) => (
+              <option key={event.id} value={event.id.toString()}>{event.name}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {selectedEventId === "overall" ? (
-        /* Overall House Standings */
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5" />
-              Overall House Standings
-            </CardTitle>
-            <CardDescription>Total points across all completed events</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {houseScores.map((house, index) => (
-                <div
-                  key={house.house_id}
-                  className={`flex items-center justify-between p-6 rounded-lg border-2 transition-all ${
-                    index === 0 ? "border-yellow-500 bg-yellow-50" : "border-border"
-                  }`}
-                >
-                  <div className="flex items-center gap-4">
-                    {getHousePositionIcon(index)}
-                    <div
-                      className="w-6 h-6 rounded-full border-2 border-white shadow-md"
-                      style={{ backgroundColor: house.house_color }}
-                    />
-                    <div>
-                      <div className="text-xl font-bold">{house.house_name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {index === 0
-                          ? "Leading House"
-                          : `${index + 1}${index === 1 ? "nd" : index === 2 ? "rd" : "th"} Place`}
-                      </div>
+        <div className="card">
+          <div className="card-header d-flex align-items-center gap-2">
+            <i className="bi bi-trophy"></i>
+            <span className="fw-semibold">Overall House Standings</span>
+            <span className="ms-auto small text-body-secondary">Total points across all completed events</span>
+          </div>
+          <div className="card-body d-grid gap-3">
+            {houseScores.map((house, index) => (
+              <div key={house.house_id} className={`d-flex align-items-center justify-content-between p-3 border rounded-2 ${index === 0 ? 'border-warning bg-warning-subtle' : ''}`}>
+                <div className="d-flex align-items-center gap-3">
+                  {getHousePositionIcon(index)}
+                  <div className="rounded-circle border border-white" style={{ width: 24, height: 24, backgroundColor: house.house_color }} />
+                  <div>
+                    <div className={`fw-bold ${index === 0 ? '' : ''}`}>{house.house_name}</div>
+                    <div className={`small ${index === 0 ? '' : 'text-primary'}`}>
+                      {index === 0 ? 'Leading House' : `${index + 1}${index === 1 ? 'nd' : index === 2 ? 'rd' : 'th'} Place`}
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-3xl font-bold text-primary">{house.total_points}</div>
-                    <div className="text-sm text-muted-foreground">points</div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="text-end">
+                  <div className={`fw-bold fs-4 ${index === 0 ? '' : 'text-primary'}`}>{house.total_points}</div>
+                  <div className={`small ${index === 0 ? '' : 'text-primary'}`}>points</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
       ) : (
-        /* Individual Event Results */
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              {events.find((e) => e.id.toString() === selectedEventId)?.name}
-            </CardTitle>
-            <CardDescription>{eventResults.length > 0 ? "Event completed" : "No results yet"}</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <div className="card">
+          <div className="card-header d-flex align-items-center gap-2">
+            <i className="bi bi-stopwatch"></i>
+            <span className="fw-semibold">{events.find((e) => e.id.toString() === selectedEventId)?.name}</span>
+            <span className="ms-auto small text-body-secondary">{eventResults.length > 0 ? 'Event completed' : 'No results yet'}</span>
+          </div>
+          <div className="card-body">
             {eventResults.length > 0 ? (
-              <div className="space-y-3">
-                {eventResults.map((result, index) => (
-                  <div
-                    key={result.id}
-                    className={`flex items-center justify-between p-4 rounded-lg border transition-all ${
-                      result.position === 1 ? "border-yellow-500 bg-yellow-50" : "border-border"
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
+              <div className="d-grid gap-2">
+                {eventResults.map((result) => (
+                  <div key={result.id} className={`d-flex align-items-center justify-content-between p-3 border rounded-2 ${result.position === 1 ? 'border-warning bg-warning-subtle' : ''}`}>
+                    <div className="d-flex align-items-center gap-3">
                       {getPositionBadge(result.position)}
-                      <div className="w-4 h-4 rounded-full" style={{ backgroundColor: (result as any).house_color }} />
+                      <div className="rounded-circle" style={{ width: 12, height: 12, backgroundColor: (result as any).house_color }} />
                       <div>
-                        <div className="font-semibold text-lg">{(result as any).swimmer_name}</div>
-                        <div className="text-sm text-muted-foreground">{(result as any).house_name}</div>
+                        <div className="fw-semibold">{(result as any).swimmer_name}</div>
+                        <div className="small text-primary">{(result as any).house_name}</div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-mono text-xl font-bold">{formatTime(result.time_seconds)}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {result.points} points • {result.status}
-                      </div>
+                    <div className="text-end">
+                      <div className="font-monospace fw-bold fs-5">{formatTime(result.time_seconds)}</div>
+                      <div className="small text-primary">{result.points} points • {result.status}</div>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No results available for this event yet.</p>
-                <p className="text-sm">Results will appear here once they are entered.</p>
+              <div className="text-center py-5 text-primary">
+                <i className="bi bi-stopwatch fs-1 opacity-50"></i>
+                <p className="m-0">No results available for this event yet.</p>
+                <p className="small m-0">Results will appear here once they are entered.</p>
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{events.length}</div>
-            <p className="text-xs text-muted-foreground">Competition events</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Leading House</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{houseScores[0]?.house_name || "TBD"}</div>
-            <p className="text-xs text-muted-foreground">{houseScores[0]?.total_points || 0} points</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Point Difference</CardTitle>
-            <Medal className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {houseScores.length >= 2 ? houseScores[0].total_points - houseScores[1].total_points : 0}
+      <div className="row g-3">
+        <div className="col-md-4">
+          <div className="card h-100">
+            <div className="card-header d-flex align-items-center justify-content-between py-2">
+              <span className="small fw-medium">Total Events</span>
             </div>
-            <p className="text-xs text-muted-foreground">1st to 2nd place</p>
-          </CardContent>
-        </Card>
+            <div className="card-body">
+              <div className="fw-bold fs-4">{events.length}</div>
+              <div className="small text-primary">Competition events</div>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card h-100">
+            <div className="card-header d-flex align-items-center justify-content-between py-2">
+              <span className="small fw-medium">Leading House</span>
+              <i className="bi bi-trophy text-primary"></i>
+            </div>
+            <div className="card-body">
+              <div className="fw-bold fs-4">{houseScores[0]?.house_name || 'TBD'}</div>
+              <div className="small text-primary">{houseScores[0]?.total_points || 0} points</div>
+            </div>
+          </div>
+        </div>
+        <div className="col-md-4">
+          <div className="card h-100">
+            <div className="card-header d-flex align-items-center justify-content-between py-2">
+              <span className="small fw-medium">Point Difference</span>
+              <i className="bi bi-award text-primary"></i>
+            </div>
+            <div className="card-body">
+              <div className="fw-bold fs-4">{houseScores.length >= 2 ? houseScores[0].total_points - houseScores[1].total_points : 0}</div>
+              <div className="small text-primary">1st to 2nd place</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
