@@ -46,25 +46,37 @@ interface ResultEntry {
   status: "completed" | "disqualified" | "did_not_start" | "did_not_finish"
 }
 
+interface HouseRow {
+  id: number
+  name: string
+  color?: string
+}
+
 export function ResultsEntry() {
   const [events, setEvents] = useState<Event[]>([])
   const [swimmers, setSwimmers] = useState<Swimmer[]>([])
+  const [houses, setHouses] = useState<HouseRow[]>([])
   const [selectedEventId, setSelectedEventId] = useState<string>("")
   const [results, setResults] = useState<ResultEntry[]>([])
   const [existingResults, setExistingResults] = useState<Result[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [lanes, setLanes] = useState<Record<number, number | "">>({}) // swimmerId -> lane
+  const [lanesSaving, setLanesSaving] = useState(false)
 
   useEffect(() => {
     async function loadData() {
       try {
-        const [eventsRes, swimmersRes] = await Promise.all([fetch("/api/events"), fetch("/api/swimmers")])
-        const [eventsJson, swimmersJson] = await Promise.all([
+        const [eventsRes, swimmersRes, housesRes] = await Promise.all([fetch("/api/events"), fetch("/api/swimmers"), fetch("/api/houses")])
+        const [eventsJson, swimmersJson, housesJson] = await Promise.all([
           eventsRes.ok ? eventsRes.json() : Promise.resolve([]),
           swimmersRes.ok ? swimmersRes.json() : Promise.resolve([]),
+          housesRes.ok ? housesRes.json() : Promise.resolve([]),
         ])
         setEvents(Array.isArray(eventsJson) ? eventsJson : [])
         setSwimmers(Array.isArray(swimmersJson) ? swimmersJson : [])
+        const normalizedHouses = (Array.isArray(housesJson) ? housesJson : []).map((h: any) => ({ id: Number(h.id ?? h.house_id ?? 0), name: h.house_name ?? h.name ?? "House", color: h.house_color ?? h.color }))
+        setHouses(normalizedHouses)
       } catch (error) {
         console.error("Failed to load data:", error)
       } finally {
@@ -79,6 +91,7 @@ export function ResultsEntry() {
       if (!selectedEventId) {
         setResults([])
         setExistingResults([])
+        setLanes({})
         return
       }
 
@@ -86,6 +99,15 @@ export function ResultsEntry() {
         const res = await fetch(`/api/results?event_id=${Number.parseInt(selectedEventId)}`)
         const eventResults: Result[] = res.ok ? await res.json() : []
         setExistingResults(Array.isArray(eventResults) ? eventResults : [])
+
+        // Load lane assignments for this event
+        const lanesRes = await fetch(`/api/lanes?eventId=${Number.parseInt(selectedEventId)}`)
+        const lanesJson = lanesRes.ok ? await lanesRes.json() : []
+        const lanesMap: Record<number, number | ""> = {}
+        for (const row of (Array.isArray(lanesJson) ? lanesJson : [])) {
+          lanesMap[Number((row as any).swimmer_id)] = Number((row as any).lane)
+        }
+        setLanes(lanesMap)
 
         // Convert existing results to form format
         const formResults: ResultEntry[] = eventResults.map((result) => {
@@ -110,7 +132,7 @@ export function ResultsEntry() {
     }
 
     loadEventResults()
-  }, [selectedEventId])
+  }, [selectedEventId, houses])
 
   const addSwimmerResult = () => {
     setResults([
@@ -215,6 +237,72 @@ export function ResultsEntry() {
     return "bg-muted"
   }
 
+  // Update a single swimmer's lane locally, ensuring uniqueness per event
+  const updateLane = (swimmerId: number, value: string) => {
+    setLanes((prev) => {
+      const next: Record<number, number | ""> = { ...prev }
+      if (value === "") {
+        next[swimmerId] = ""
+        return next
+      }
+      const lane = Number.parseInt(value)
+      if (!Number.isFinite(lane) || lane < 1 || lane > 10) {
+        return next
+      }
+      // Clear this lane from any other house to keep lanes unique client-side
+      for (const [hid, l] of Object.entries(next)) {
+        if (Number(hid) !== swimmerId && l === lane) {
+          next[Number(hid)] = ""
+        }
+      }
+      next[swimmerId] = lane
+      return next
+    })
+  }
+
+  // Persist lane assignments for the selected event
+  const saveLanes = async () => {
+    if (!selectedEventId) return
+    setLanesSaving(true)
+    try {
+      const assignments = Object.entries(lanes)
+        .filter(([, l]) => typeof l === "number" && (l as number) >= 1 && (l as number) <= 10)
+        .map(([sid, l]) => ({ swimmerId: Number(sid), lane: l as number }))
+
+      // Validate uniqueness before sending
+      const seen = new Set<number>()
+      for (const a of assignments) {
+        if (seen.has(a.lane)) {
+          alert("Duplicate lane assignments found. Each lane must be unique.")
+          setLanesSaving(false)
+          return
+        }
+        seen.add(a.lane)
+      }
+
+      const res = await fetch("/api/lanes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId: Number.parseInt(selectedEventId),
+          assignments,
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({} as any))
+        throw new Error(err.error || `Failed to save lanes (${res.status})`)
+      }
+
+      alert("Lanes saved successfully!")
+    } catch (error) {
+      console.error("Failed to save lanes:", error)
+      alert((error as Error).message || "Failed to save lanes. Please try again.")
+    } finally {
+      setLanesSaving(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="d-grid gap-3">
@@ -262,6 +350,66 @@ export function ResultsEntry() {
 
       {selectedEventId && (
         <>
+          {/* Lanes Assignment (per swimmer) */}
+          <div className="card">
+            <div className="card-header d-flex justify-content-between align-items-center">
+              <div>
+                <div className="fw-semibold">Lanes Assignment</div>
+                <div className="text-body-secondary small">Assign lanes (1–10) to swimmers for this event</div>
+              </div>
+              <button type="button" className="btn btn-sm btn-primary" onClick={saveLanes} disabled={lanesSaving}>
+                <i className="bi bi-save me-1"></i>
+                {lanesSaving ? 'Saving...' : 'Save Lanes'}
+              </button>
+            </div>
+            <div className="card-body p-0">
+              <div className="table-responsive">
+                <table className="table table-sm align-middle mb-0">
+                  <thead className="table-light">
+                    <tr>
+                      <th>Swimmer</th>
+                      <th>House</th>
+                      <th style={{width: 140}}>Lane (1–10)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(
+                      // Prefer current form entries; else fall back to existing results
+                      (results.filter(r => r.swimmer_id > 0).length > 0
+                        ? results.filter(r => r.swimmer_id > 0).map(r => ({
+                            swimmer_id: r.swimmer_id,
+                            swimmer_name: r.swimmer_name,
+                            house_name: r.house_name,
+                            house_color: r.house_color,
+                          }))
+                        : existingResults.map((res: any) => ({
+                            swimmer_id: res.swimmer_id,
+                            swimmer_name: res.swimmer_name,
+                            house_name: res.house_name,
+                            house_color: res.house_color,
+                          }))
+                      )
+                    ).map((s) => (
+                      <tr key={s.swimmer_id}>
+                        <td className="fw-semibold">{s.swimmer_name}</td>
+                        <td>
+                          <span className="badge" style={{ backgroundColor: s.house_color || '#6c757d', color: 'var(--bs-body-bg)' }}>{s.house_name}</span>
+                        </td>
+                        <td>
+                          <select className="form-select form-select-sm" value={(lanes[s.swimmer_id] ?? "").toString()} onChange={(e) => updateLane(s.swimmer_id, e.target.value)}>
+                            <option value="">Unassigned</option>
+                            {Array.from({ length: 10 }, (_, i) => i + 1).map((n) => (
+                              <option key={n} value={n.toString()}>{n}</option>
+                            ))}
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
           {/* Existing Results Display */}
           {existingResults.length > 0 && (
             <div className="card">

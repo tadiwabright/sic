@@ -8,6 +8,7 @@ import { Trophy, Medal, Download, RefreshCw, Table, Grid } from "lucide-react"
 import ThemeToggle from "@/components/theme-toggle"
 import GradientText from "@/components/GradientText"
 import LiquidChrome from "@/components/LiquidChrome"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface SwimmerResult {
   swimmer_name: string
@@ -19,6 +20,18 @@ interface SwimmerResult {
   time_seconds: number | null
   status: string
 }
+
+interface EventItem {
+  id: number
+  name: string
+  category: string
+  distance: string
+  gender: string
+  age_group: string
+}
+
+// Fallback palette used when a house has no color from the API
+const HOUSE_PALETTE = ['#E53935', '#1E88E5', '#43A047', '#FDD835']
 
 // Map house names to brand colors to ensure consistent visuals
 function resolveHouseColor(houseName: string | undefined, fallback?: string): string {
@@ -69,6 +82,13 @@ export function EnhancedScoreboard() {
   const [loading, setLoading] = useState(true)
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table')
+  const [showDetailed, setShowDetailed] = useState<boolean>(true)
+  const [events, setEvents] = useState<EventItem[]>([])
+  const [selectedEventId, setSelectedEventId] = useState<string>("all")
+  // Derive filtered results by event selection; results contain event_name
+  const filtered = selectedEventId === 'all'
+    ? results
+    : results.filter(r => (r.event_name || '').toString() === selectedEventId)
 
   const fetchData = async () => {
     try {
@@ -104,12 +124,14 @@ export function EnhancedScoreboard() {
       const normalizedHouses = Array.isArray(housesData) ? housesData : []
 
       setResults(normalizedResults as SwimmerResult[])
-      setHouseTotals(
-        normalizedHouses.map((house: any, index: number) => ({
-          ...house,
-          rank: index + 1
-        })) as HouseTotal[]
-      )
+      // Normalize houses to the shape the UI expects so names/colors are correct
+      const normalizedHouseTotals: HouseTotal[] = (normalizedHouses as any[]).map((h, index) => ({
+        house_name: h.house_name ?? h.name ?? "House",
+        house_color: h.house_color ?? h.color ?? "#6c757d",
+        total_points: Number(h.total_points ?? 0),
+        rank: index + 1,
+      }))
+      setHouseTotals(normalizedHouseTotals)
       setLastUpdate(new Date())
     } catch (error) {
       console.error('Error fetching scoreboard data:', error)
@@ -120,6 +142,14 @@ export function EnhancedScoreboard() {
 
   useEffect(() => {
     fetchData()
+    // Load events for filtering
+    fetch('/api/events')
+      .then(r => r.ok ? r.json() : [])
+      .then((data) => {
+        const list = Array.isArray(data) ? data : []
+        setEvents(list as EventItem[])
+      })
+      .catch(() => setEvents([]))
     
     // Auto-refresh every 30 seconds for real-time updates
     const interval = setInterval(fetchData, 30000)
@@ -171,9 +201,80 @@ export function EnhancedScoreboard() {
           <div className="flex items-center justify-between max-w-4xl mx-auto mb-2">
             <div />
             <ThemeToggle />
-          </div>
+            {/* Scoped styles for water-flow animated select */}
+      <style jsx>{`
+        .water-trigger {
+          position: relative;
+          border: 2px solid transparent;
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.75), rgba(255,255,255,0.55)) padding-box,
+            linear-gradient(120deg, #40ffaa, #4079ff, #40ffaa) border-box;
+          box-shadow:
+            0 2px 12px rgba(64,121,255,0.25),
+            inset 0 0 20px rgba(64,121,255,0.1);
+          transition: box-shadow 300ms ease, transform 300ms ease;
+          overflow: hidden;
+          z-index: 0; /* allow overlay pseudo-element as background layer */
+        }
+        /* ensure trigger content sits above the animated overlay */
+        .water-trigger > * { position: relative; z-index: 1; }
+        :global(.dark) .water-trigger {
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.06)) padding-box,
+            linear-gradient(120deg, #40ffaa, #4079ff, #40ffaa) border-box;
+          box-shadow:
+            0 2px 14px rgba(64,255,170,0.15),
+            inset 0 0 24px rgba(64,121,255,0.12);
+        }
+        .water-trigger::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: 9999px;
+          background: repeating-linear-gradient(
+            135deg,
+            rgba(64,121,255,0.18) 0 14px,
+            rgba(64,255,170,0.18) 14px 28px
+          );
+          mix-blend-mode: overlay;
+          opacity: 0.7;
+          animation: waterFlow 6s linear infinite;
+          pointer-events: none;
+          z-index: 0; /* keep behind text */
+        }
+        .water-trigger:hover {
+          transform: translateY(-1px);
+          box-shadow:
+            0 6px 18px rgba(64,121,255,0.35),
+            inset 0 0 28px rgba(64,121,255,0.14);
+        }
+        @keyframes waterFlow {
+          from { background-position: 0 0; }
+          to { background-position: 240px 0; }
+        }
+
+        /* Dropdown content styling */
+        .water-content {
+          border: 2px solid transparent;
+          background:
+            linear-gradient(180deg, rgba(255,255,255,0.95), rgba(255,255,255,0.9)) padding-box,
+            linear-gradient(120deg, #40ffaa, #4079ff, #40ffaa) border-box;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        :global(.dark) .water-content {
+          background:
+            linear-gradient(180deg, rgba(9,12,20,0.92), rgba(9,12,20,0.88)) padding-box,
+            linear-gradient(120deg, #40ffaa, #4079ff, #40ffaa) border-box;
+          box-shadow: 0 10px 36px rgba(64,121,255,0.18);
+        }
+      `}</style>
+    </div>
           <h1 className="text-4xl font-bold mb-2 transition-colors duration-300 cursor-default animate-bounce-subtle tracking-wide flex items-center justify-center gap-2">
-            <span className="text-white drop-shadow-md dark:text-white">🏊‍♂️</span>
+            <img
+              src="/logo.png"
+              alt="Scoreboard Logo"
+              className="h-16 w-16 md:h-20 md:w-20 object-contain drop-shadow-lg rounded-md bg-white/80 dark:bg-white/10 p-1"
+            />
             <GradientText
               colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]}
               animationSpeed={3}
@@ -240,6 +341,27 @@ export function EnhancedScoreboard() {
               </Button>
             </div>
 
+            {/* Event Filter */}
+            <div className="w-full md:w-auto md:ml-2">
+              <label className="sr-only">Filter by event</label>
+              <Select value={selectedEventId} onValueChange={(v) => setSelectedEventId(v)}>
+                <SelectTrigger className="water-trigger mt-2 md:mt-0 rounded-full px-4 py-2 text-sm text-gray-900 dark:text-gray-100 data-[placeholder]:text-gray-700 dark:data-[placeholder]:text-gray-200">
+                  <SelectValue placeholder="All Events" />
+                </SelectTrigger>
+                <SelectContent className="water-content rounded-xl">
+                  <SelectItem value="all">All Events</SelectItem>
+                  {events
+                    .slice()
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .map((ev) => (
+                      <SelectItem key={ev.id} value={ev.name}>{ev.name}</SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+
+
             <p className="text-sm text-gray-600 dark:text-gray-300">
               Last updated: {lastUpdate ? lastUpdate.toLocaleTimeString() : 'Never'}
             </p>
@@ -267,9 +389,19 @@ export function EnhancedScoreboard() {
                     {house.rank > 3 && <div className="h-8 w-8" />}
                   </div>
                   <CardTitle className="text-xl font-bold hover:scale-110 transition-transform duration-200">
-                    <GradientText colors={["#40ffaa", "#4079ff", "#40ffaa", "#4079ff", "#40ffaa"]} animationSpeed={3}>
-                      <span style={{ color: 'transparent' }}>{house.house_name}</span>
-                    </GradientText>
+                    {(() => {
+                      const name = (house.house_name && house.house_name.trim()) || (house as any).name || `House ${index + 1}`
+                      const bg = ((house as any).house_color && (house as any).house_color.trim()) || HOUSE_PALETTE[index % HOUSE_PALETTE.length]
+                      const fg = getReadableTextColor(bg)
+                      return (
+                        <Badge
+                          className="text-sm font-semibold px-3 py-1 rounded-full shadow-sm ring-1 ring-black/5 dark:ring-white/10"
+                          style={{ backgroundColor: bg as string, color: fg }}
+                        >
+                          {name}
+                        </Badge>
+                      )
+                    })()}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -346,7 +478,7 @@ export function EnhancedScoreboard() {
                       </tr>
                     </thead>
                     <tbody className="bg-white/90 dark:bg-gray-900/40 divide-y divide-gray-100 dark:divide-gray-800">
-                      {results.map((result, index) => (
+                      {filtered.map((result, index) => (
                         <tr key={`table-result-${index}-${result.swimmer_name}-${result.event_name}`} className="transition-colors duration-200 hover:bg-blue-50/60 dark:hover:bg-gray-800/60">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`inline-flex items-center justify-center px-3 py-1 text-xs font-bold rounded-full min-w-[3rem] ring-1 ring-black/5 dark:ring-white/10 ${
@@ -400,7 +532,7 @@ export function EnhancedScoreboard() {
             </Card>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {results.map((result, index) => (
+              {filtered.map((result, index) => (
                 <Card key={`card-result-${index}-${result.swimmer_name}-${result.event_name}`} className="hover:shadow-xl hover:scale-105 transition-all duration-300 hover:-translate-y-2 hover:rotate-1 cursor-pointer group">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-3">
